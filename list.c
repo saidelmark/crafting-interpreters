@@ -14,8 +14,7 @@ struct Node {
 
 
 // Global variables, pointers to both ends of the list
-NodePtr first;
-NodePtr last;
+NodePtr first, last;
 
 // Create a new node with given value.
 // Later this node can be inserted into any place of the list
@@ -33,7 +32,7 @@ bool isEmpty() {
 
 void push(int x) {
 	NodePtr node = newNode(x);
-	if (isEmpty()){
+	if (isEmpty()) {
 		first = node;
 		last = node;
 	} else {
@@ -112,7 +111,7 @@ void printList() {
 	printf("[ ");
 	NodePtr current = first;
 	for (; current != NULL; current = current->next) {
-		printf("%d", current->value);
+		printf("%d ", current->value);
 	}
 	printf("]\n");
 }
@@ -121,7 +120,7 @@ void printRevList() {
 	printf("[ ");
 	NodePtr current = last;
 	for (; current != NULL; current = current->prev) {
-		printf("%d", current->value);
+		printf("%d ", current->value);
 	}
 	printf("]\n");
 }
