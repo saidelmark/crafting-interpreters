@@ -63,8 +63,10 @@ int* pop() {
 			first->next->prev = NULL;
 		}
 		NodePtr second = first->next;
+		first->next = NULL;
 		free(first);
 		first = second;
+		first->prev = NULL;
 	}
 	return item;
 }
@@ -77,8 +79,10 @@ int* trim() {
 			last->prev->next = NULL;
 		}
 		NodePtr pre_last = last->prev;
+		last->prev = NULL;
 		free(last);
 		last = pre_last;
+		last->next = NULL;
 	}
 	return item;
 }
