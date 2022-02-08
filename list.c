@@ -87,6 +87,15 @@ int* trim() {
 	return item;
 }
 
+void destroy() {
+	for (NodePtr current = first; !isEmpty(); current = first) {
+		first = first->next;
+		current->next = NULL;
+		current->prev = NULL;
+		free(current);
+	}
+}
+
 // Doesn't take any args as long as there's only one list,
 // the one that `first` points to.
 // Onece I abstract away from `first`, `length` should take a `Node* list` as an arg
