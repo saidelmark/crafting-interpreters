@@ -116,15 +116,15 @@ void deleteNode(NodePtr node) {
 	}
 	NodePtr prev = node->prev;
 	NodePtr next = node->next;
-	if (prev != NULL) {
-		prev->next = next;
-	} else {
+	if (node == first) {
 		first = next;
-	}
-	if (next != NULL) {
-		next->prev = prev;
 	} else {
+		prev->next = next;
+	}
+	if (node == last) {
 		last = prev;
+	} else {
+		next->prev = prev;
 	}
 	free(node->value);
 	free(node);
