@@ -110,6 +110,40 @@ void destroy() {
 	}
 }
 
+void deleteNode(NodePtr node) {
+	if (node == NULL) {
+		return;
+	}
+	NodePtr prev = node->prev;
+	NodePtr next = node->next;
+	if (prev != NULL) {
+		prev->next = next;
+	} else {
+		first = next;
+	}
+	if (next != NULL) {
+		next->prev = prev;
+	} else {
+		last = prev;
+	}
+	free(node->value);
+	free(node);
+}
+
+NodePtr findNode(char* query) {
+	NodePtr result = NULL;
+	for (NodePtr node = first; node != NULL; node = node->next) {
+		if (!strcmp(query, node->value)) {
+			result = node;
+		}
+	}
+	return result;
+}
+
+void deleteByValue(char* query) {
+	deleteNode(findNode(query));
+}
+
 // Doesn't take any args as long as there's only one list,
 // the one that `first` points to.
 // Onece I abstract away from `first`, `length` should take a `Node* list` as an arg

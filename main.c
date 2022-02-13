@@ -14,6 +14,7 @@ int main(int count, char *argv[]) {
 	char* trimmed = trim();
 	printf("trimmed \"%s\"\n", trimmed);
 	free(trimmed);
+	deleteByValue("another item");
 	printList();
 	destroy();
 	printList();
