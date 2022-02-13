@@ -13,9 +13,21 @@ struct Node {
 	NodePtr prev;
 };
 
+struct List {
+	NodePtr first;
+	NodePtr last;
+} List;
 
-// Global variables, pointers to both ends of the list
-NodePtr first, last;
+typedef struct List* ListPtr;
+
+ListPtr newList() {
+	ListPtr list = (ListPtr) malloc(sizeof(List));
+	if (list != NULL) {
+		list->first = NULL;
+		list->last = NULL;
+	}
+	return list;
+}
 
 // Duplicate a string
 char* strdup(char* str) {
@@ -30,99 +42,102 @@ char* strdup(char* str) {
 // Later this node can be inserted into any place of the list
 NodePtr newNode(char* s) {
 	NodePtr node = (NodePtr)malloc(sizeof(struct Node));
-	node->value = strdup(s);
-	node->next = NULL;
-	node->prev = NULL;
+	if (node != NULL) {
+		node->value = strdup(s);
+		node->next = NULL;
+		node->prev = NULL;
+	}
 	return node;
 }
 
-bool isEmpty() {
-	return first == NULL;
+bool isEmpty(ListPtr list) {
+	return list->first == NULL;
 }
 
-void push(char*  x) {
+void push(ListPtr list, char*  x) {
 	NodePtr node = newNode(x);
-	if (isEmpty()) {
-		first = node;
-		last = node;
+	if (isEmpty(list)) {
+		list->first = node;
+		list->last = node;
 	} else {
-		node->next = first;
-		first->prev = node;
-		first = node;
+		node->next = list->first;
+		list->first->prev = node;
+		list->first = node;
 	}
 }
 
-void append(char*  x) {
+void append(ListPtr list, char*  x) {
 	NodePtr node = newNode(x);
-	if (isEmpty()) {
-		last = node;
-		first = node;
+	if (isEmpty(list)) {
+		list->last = node;
+		list->first = node;
 	} else {
-		node->prev = last;
-		last->next = node;
-		last = node;
+		node->prev = list->last;
+		list->last->next = node;
+		list->last = node;
 	}
 }
 
 // WARNING: this function returns a heap-allocated string.
 // It's you responsibility to deallocate the memory.
-char* pop() {
+char* pop(ListPtr list) {
 	char* nodeValue = NULL;
-	if (!isEmpty()) {
-		nodeValue = first->value;
-		if (first->next != NULL) {
-			first->next->prev = NULL;
+	if (!isEmpty(list)) {
+		nodeValue = list->first->value;
+		if (list->first->next != NULL) {
+			list->first->next->prev = NULL;
 		}
-		NodePtr second = first->next;
-		first->next = NULL;
-		free(first);
-		first = second;
-		first->prev = NULL;
+		NodePtr second = list->first->next;
+		list->first->next = NULL;
+		free(list->first);
+		list->first = second;
+		list->first->prev = NULL;
 	}
 	return nodeValue;
 }
 
 // WARNING: this function returns a heap-allocated string.
 // It's you responsibility to deallocate the memory.
-char* trim() {
+char* trim(ListPtr list) {
 	char* nodeValue = NULL;
-	if (!isEmpty()) {
-		nodeValue = last->value;
-		if (last->prev != NULL) {
-			last->prev->next = NULL;
+	if (!isEmpty(list)) {
+		nodeValue = list->last->value;
+		if (list->last->prev != NULL) {
+			list->last->prev->next = NULL;
 		}
-		NodePtr pre_last = last->prev;
-		last->prev = NULL;
-		free(last);
-		last = pre_last;
-		last->next = NULL;
+		NodePtr pre_last = list->last->prev;
+		list->last->prev = NULL;
+		free(list->last);
+		list->last = pre_last;
+		list->last->next = NULL;
 	}
 	return nodeValue;
 }
 
-void destroy() {
-	for (NodePtr current = first; !isEmpty(); current = first) {
-		first = first->next;
+void destroy(ListPtr list) {
+	for (NodePtr current = list->first; !isEmpty(list); current = list->first) {
+		list->first = list->first->next;
 		current->next = NULL;
 		current->prev = NULL;
 		free(current->value);
 		free(current);
 	}
+	free(list);
 }
 
-void deleteNode(NodePtr node) {
+void deleteNode(ListPtr list, NodePtr node) {
 	if (node == NULL) {
 		return;
 	}
 	NodePtr prev = node->prev;
 	NodePtr next = node->next;
-	if (node == first) {
-		first = next;
+	if (node == list->first) {
+		list->first = next;
 	} else {
 		prev->next = next;
 	}
-	if (node == last) {
-		last = prev;
+	if (node == list->last) {
+		list->last = prev;
 	} else {
 		next->prev = prev;
 	}
@@ -130,9 +145,9 @@ void deleteNode(NodePtr node) {
 	free(node);
 }
 
-NodePtr findNode(char* query) {
+NodePtr findNode(ListPtr list, char* query) {
 	NodePtr result = NULL;
-	for (NodePtr node = first; node != NULL; node = node->next) {
+	for (NodePtr node = list->first; node != NULL; node = node->next) {
 		if (!strcmp(query, node->value)) {
 			result = node;
 		}
@@ -140,34 +155,31 @@ NodePtr findNode(char* query) {
 	return result;
 }
 
-void deleteByValue(char* query) {
-	deleteNode(findNode(query));
+void deleteByValue(ListPtr list, char* query) {
+	deleteNode(list, findNode(list, query));
 }
 
-// Doesn't take any args as long as there's only one list,
-// the one that `first` points to.
-// Onece I abstract away from `first`, `length` should take a `Node* list` as an arg
-int lentgh() {
+int lentgh(ListPtr list) {
 	int result;
-	NodePtr current = first;
+	NodePtr current = list->first;
 	for (result = 0; current != NULL; current = current->next) {
 		result++;
 	}
 	return result;
 }
 
-void printList() {
+void printList(ListPtr list) {
 	printf("[ ");
-	NodePtr current = first;
+	NodePtr current = list->first;
 	for (; current != NULL; current = current->next) {
 		printf("\"%s\", ", current->value);
 	}
 	printf("]\n");
 }
 
-void printRevList() {
+void printRevList(ListPtr list) {
 	printf("[ ");
-	NodePtr current = last;
+	NodePtr current = list->last;
 	for (; current != NULL; current = current->prev) {
 		printf("\"%s\", ", current->value);
 	}
