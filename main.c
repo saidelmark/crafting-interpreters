@@ -2,14 +2,18 @@
 #include "list.c"
 
 int main(int count, char *argv[]) {
-	push(1);
-	push(2);
-	push(3);
-	append(5);
+	push("some first item");
+	push("another item");
+	push("one more item");
+	append("the last item");
 	printList();
 	printRevList();
-	pop();
-	trim();
+	char* popped = pop();
+	printf("popped \"%s\"\n", popped);
+	free(popped);
+	char* trimmed = trim();
+	printf("trimmed \"%s\"\n", trimmed);
+	free(trimmed);
 	printList();
 	destroy();
 	printList();

@@ -1,13 +1,14 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdbool.h>
+#include<string.h>
 
 // This is the main type I'll be working with,
 // not with nodes themselves but with pointers to them
 typedef struct Node* NodePtr;
 
 struct Node {
-	int value;
+	char* value;
 	NodePtr next;
 	NodePtr prev;
 };
@@ -16,11 +17,20 @@ struct Node {
 // Global variables, pointers to both ends of the list
 NodePtr first, last;
 
+// Duplicate a string
+char* strdup(char* str) {
+	char* str_d = (char*) malloc(strlen(str)+1);
+	if  (str_d != NULL) {
+		strcpy(str_d, str);
+	}
+	return str_d;
+}
+
 // Create a new node with given value.
 // Later this node can be inserted into any place of the list
-NodePtr newNode(int x) {
+NodePtr newNode(char* s) {
 	NodePtr node = (NodePtr)malloc(sizeof(struct Node));
-	node->value = x;
+	node->value = strdup(s);
 	node->next = NULL;
 	node->prev = NULL;
 	return node;
@@ -30,7 +40,7 @@ bool isEmpty() {
 	return first == NULL;
 }
 
-void push(int x) {
+void push(char*  x) {
 	NodePtr node = newNode(x);
 	if (isEmpty()) {
 		first = node;
@@ -42,7 +52,7 @@ void push(int x) {
 	}
 }
 
-void append(int x) {
+void append(char*  x) {
 	NodePtr node = newNode(x);
 	if (isEmpty()) {
 		last = node;
@@ -54,10 +64,12 @@ void append(int x) {
 	}
 }
 
-int* pop() {
-	int* item = NULL;
+// WARNING: this function returns a heap-allocated string.
+// It's you responsibility to deallocate the memory.
+char* pop() {
+	char* nodeValue = NULL;
 	if (!isEmpty()) {
-		item = &first->value;
+		nodeValue = first->value;
 		if (first->next != NULL) {
 			first->next->prev = NULL;
 		}
@@ -67,13 +79,15 @@ int* pop() {
 		first = second;
 		first->prev = NULL;
 	}
-	return item;
+	return nodeValue;
 }
 
-int* trim() {
-	int* item = NULL;
+// WARNING: this function returns a heap-allocated string.
+// It's you responsibility to deallocate the memory.
+char* trim() {
+	char* nodeValue = NULL;
 	if (!isEmpty()) {
-		item = &last->value;
+		nodeValue = last->value;
 		if (last->prev != NULL) {
 			last->prev->next = NULL;
 		}
@@ -83,7 +97,7 @@ int* trim() {
 		last = pre_last;
 		last->next = NULL;
 	}
-	return item;
+	return nodeValue;
 }
 
 void destroy() {
@@ -91,6 +105,7 @@ void destroy() {
 		first = first->next;
 		current->next = NULL;
 		current->prev = NULL;
+		free(current->value);
 		free(current);
 	}
 }
@@ -111,7 +126,7 @@ void printList() {
 	printf("[ ");
 	NodePtr current = first;
 	for (; current != NULL; current = current->next) {
-		printf("%d ", current->value);
+		printf("\"%s\", ", current->value);
 	}
 	printf("]\n");
 }
@@ -120,7 +135,7 @@ void printRevList() {
 	printf("[ ");
 	NodePtr current = last;
 	for (; current != NULL; current = current->prev) {
-		printf("%d ", current->value);
+		printf("\"%s\", ", current->value);
 	}
 	printf("]\n");
 }
