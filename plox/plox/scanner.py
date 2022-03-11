@@ -63,7 +63,7 @@ class Scanner:
                     self._add_token(TokenType.LESS)
             case '/':
                 if self._match("/"):
-                    while not self._is_at_end() and self._peek not in ['\n', None]:
+                    while self._peek() not in ['\n', None]:
                         self._advance()
                 else:
                     self._add_token(TokenType.SLASH)
