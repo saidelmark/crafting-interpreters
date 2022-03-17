@@ -65,6 +65,11 @@ class Scanner:
                 if self._match("/"):
                     while self._peek() not in ['\n', None]:
                         self._advance()
+                elif self._match("*"):
+                    while self._peek_digraph() != "*/":
+                        self._advance()
+                    self._advance()
+                    self._advance()
                 else:
                     self._add_token(TokenType.SLASH)
             case ' ' | '\r' | '\t':
@@ -113,6 +118,9 @@ class Scanner:
         if self._current + 1 >= len(self._source):
             return None
         return self._source[self._current + 1]
+
+    def _peek_digraph(self) -> str:
+        return f"{self._peek()}{self._peek_next()}"
 
     def _is_at_end(self) -> bool:
         return self._current >= len(self._source)
