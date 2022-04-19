@@ -1,0 +1,16 @@
+// this is ignored
+print "Hello, world!";
+true
+false
+90832
+-7.234
+"some string"
+/ + - * = == > >= < <= ! != , .
+name
+another_name123
+and or
+() {}
+var print if else while for
+/* This is a long comment 123.432
+*/
+fun class return this super
