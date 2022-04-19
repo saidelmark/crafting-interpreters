@@ -5,7 +5,7 @@ from plox.expressions import Binary, Expr, Grouping, Literal, Unary
 class AstPrinter:
     @singledispatchmethod
     def print(self, expr: Expr) -> str:
-        pass
+        raise NotImplementedError
 
     @print.register
     def _(self, expr: Binary) -> str:
