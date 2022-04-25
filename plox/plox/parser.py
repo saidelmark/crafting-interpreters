@@ -1,11 +1,18 @@
 from plox.token_types import Token, TokenType
 from plox.expressions import Expr, Binary, Unary, Literal, Grouping
+from plox.errors import report
 
 
 class Parser:
     def __init__(self, tokens):
         self._tokens = tokens
         self._current = 0
+
+    def parse(self) -> Expr:
+        try:
+            return self._expression()
+        except Exception:
+            return None
 
     def _expression(self) -> Expr:
         return self._equality()
@@ -73,6 +80,7 @@ class Parser:
             self._consume(TokenType.RIGHT_PAREN,
                           "Expect ')' after expression.")
             return Grouping(expr)
+        raise Exception(self._peek(), "Expect expression")
 
     # Methods that work with the tokens stream
     def _match(self, *types: TokenType) -> bool:
@@ -107,4 +115,25 @@ class Parser:
         return self._tokens[self._current - 1]
 
     def _error(self, token: Token, message: str):
-        pass
+        if token.type == TokenType.EOF:
+            report(token.line, " at end", message)
+        else:
+            report(token.line, " at '" + token.lexeme + "'", message)
+        raise Exception("Parse error")
+
+    def synchronize(self):
+        self._advance()
+        while not self._is_at_and():
+            if self._previous().type == TokenType.SEMICOLON:
+                return
+            match self._peek().type:
+                case TokenType.CLASS |\
+                        TokenType.FUN |\
+                        TokenType.VAR |\
+                        TokenType.FOR |\
+                        TokenType.IF |\
+                        TokenType.WHILE |\
+                        TokenType.PRINT |\
+                        TokenType.RETURN:
+                    return
+            self._advance()

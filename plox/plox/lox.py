@@ -1,5 +1,7 @@
 import sys
 from plox.scanner import Scanner
+from plox.parser import Parser
+from plox.ast_printer import AstPrinter
 
 
 class Lox:
@@ -24,5 +26,7 @@ class Lox:
     def run(self, src: str):
         scanner = Scanner(src)
         tokens = scanner.scan_tokens()
-        for token in tokens:
-            print(token)
+        parser = Parser(tokens)
+        expression = parser.parse()
+        printer = AstPrinter()
+        printer.print(expression)
