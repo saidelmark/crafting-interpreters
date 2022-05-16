@@ -29,4 +29,4 @@ class Lox:
         parser = Parser(tokens)
         expression = parser.parse()
         printer = AstPrinter()
-        printer.print(expression)
+        print(printer.print(expression))
