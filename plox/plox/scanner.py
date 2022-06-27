@@ -1,6 +1,6 @@
 import string
 from plox.token_types import Token, TokenType, KEYWORD_TOKEN_TYPES
-from plox.errors import error
+from plox.errors import LoxErrors
 
 
 class Scanner:
@@ -132,7 +132,7 @@ class Scanner:
             self._advance()
         if self._is_at_end():
             # string not terminated
-            error(self._line, "Unterminated string")
+            LoxErrors.error(self._line, "Unterminated string")
             return
         self._advance()  # step over '"'
         # +-1 are trimming the surrounding '"'
