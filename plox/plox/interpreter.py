@@ -1,6 +1,6 @@
 from plox.expressions import Expr, Literal, Grouping, Unary, Binary
 from plox.token_types import TokenType, Token
-from plox.errors import LoxErrors, RuntimeError
+from plox.errors import LoxErrors, LoxRuntimeError
 from functools import singledispatchmethod
 
 
@@ -49,7 +49,7 @@ class Interpreter:
                     return float(left) + float(right)
                 if isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
-                raise RuntimeError(
+                raise LoxRuntimeError(
                     expr.operator,
                     'Operands must be two numbers or two strings.'
                 )
@@ -102,7 +102,7 @@ class Interpreter:
     def _check_number_operands(self, operator: Token, left, right):
         if isinstance(left, float) and isinstance(right, float):
             return
-        raise RuntimeError(operator, 'Operands must be numbers')
+        raise LoxRuntimeError(operator, 'Operands must be numbers')
 
     def _stringify(self, object) -> str:
         if object is None:

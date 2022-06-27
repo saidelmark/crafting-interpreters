@@ -21,7 +21,7 @@ class LoxErrors:
         print(f"[line {line}] Error {where}: {message}")
 
 
-class RuntimeError(Exception):
+class LoxRuntimeError(Exception):
     def __init__(self, token: Token, message):
         super().__init__(message)
         self.message = message
