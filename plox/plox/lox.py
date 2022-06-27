@@ -1,11 +1,13 @@
 import sys
 from plox.scanner import Scanner
 from plox.parser import Parser
-from plox.ast_printer import AstPrinter
 from plox.errors import LoxErrors
+from plox.interpreter import Interpreter
 
 
 class Lox:
+    _interpreter = Interpreter()
+
     def __init__(self):
         pass
 
@@ -30,5 +32,4 @@ class Lox:
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
         expression = parser.parse()
-        printer = AstPrinter()
-        print(printer.print(expression))
+        self._interpreter.interpret(expression)
