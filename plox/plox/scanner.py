@@ -85,7 +85,7 @@ class Scanner:
                 elif is_alpha(c):
                     self._scan_identifier()
                 else:
-                    error(self._line, f"Unexpected character {c}.")
+                    LoxErrors.error(self._line, f"Unexpected character {c}.")
 
     def _add_token(self, token_type: TokenType, literal=None):
         token = Token(

@@ -8,8 +8,8 @@ class LoxErrors:
 
     @staticmethod
     def error(line: int, message: str):
-        LoxErrors.was_error = True
-        LoxErrors._report(line, "", message)
+        LoxErrors.had_error = True
+        LoxErrors.report(line, "", message)
 
     @staticmethod
     def runtime_error(re: RuntimeError):
