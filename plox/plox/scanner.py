@@ -16,6 +16,7 @@ class Scanner:
             self._start = self._current
             self.scan_single_token()
 
+        self._add_token(TokenType.EOF)
         return self._tokens
 
     def scan_single_token(self):
