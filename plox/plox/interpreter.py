@@ -9,7 +9,7 @@ class Interpreter:
         try:
             value = self._evaluate(expr)
             print(self._stringify(value))
-        except Exception as e:
+        except LoxRuntimeError as e:
             LoxErrors.runtime_error(e)
 
     @singledispatchmethod
