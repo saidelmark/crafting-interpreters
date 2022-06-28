@@ -31,19 +31,19 @@ class Interpreter:
                 return self._check_equal(left, right)
             case TokenType.GREATER:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) > float(right)
+                return left > right
             case TokenType.GREATER_EQUAL:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) >= float(right)
+                return left >= right
             case TokenType.LESS:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) < float(right)
+                return left < right
             case TokenType.LESS_EQUAL:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) <= float(right)
+                return left <= right
             case TokenType.MINUS:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) - float(right)
+                return left - right
             case TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
                     return float(left) + float(right)
@@ -55,10 +55,10 @@ class Interpreter:
                 )
             case TokenType.SLASH:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) / float(right)
+                return left / right
             case TokenType.STAR:
                 self._check_number_operands(expr.operator, left, right)
-                return float(left) * float(right)
+                return left * right
 
     @_evaluate.register
     def _(self, expr: Unary):
