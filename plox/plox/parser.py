@@ -1,6 +1,6 @@
 from plox.token_types import Token, TokenType
 from plox.expressions import Expr, Binary, Unary, Literal, Grouping
-from plox.errors import report
+from plox.errors import LoxErrors
 
 
 class Parser:
@@ -116,9 +116,9 @@ class Parser:
 
     def _error(self, token: Token, message: str):
         if token.type == TokenType.EOF:
-            report(token.line, " at end", message)
+            LoxErrors.report(token.line, " at end", message)
         else:
-            report(token.line, " at '" + token.lexeme + "'", message)
+            LoxErrors.report(token.line, " at '" + token.lexeme + "'", message)
         raise Exception("Parse error")
 
     def synchronize(self):

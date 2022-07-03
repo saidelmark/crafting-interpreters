@@ -1,6 +1,6 @@
 import string
 from plox.token_types import Token, TokenType, KEYWORD_TOKEN_TYPES
-from plox.errors import error
+from plox.errors import LoxErrors
 
 
 class Scanner:
@@ -16,6 +16,7 @@ class Scanner:
             self._start = self._current
             self.scan_single_token()
 
+        self._add_token(TokenType.EOF)
         return self._tokens
 
     def scan_single_token(self):
@@ -85,7 +86,7 @@ class Scanner:
                 elif is_alpha(c):
                     self._scan_identifier()
                 else:
-                    error(self._line, f"Unexpected character {c}.")
+                    LoxErrors.error(self._line, f"Unexpected character {c}.")
 
     def _add_token(self, token_type: TokenType, literal=None):
         token = Token(
@@ -132,7 +133,7 @@ class Scanner:
             self._advance()
         if self._is_at_end():
             # string not terminated
-            error(self._line, "Unterminated string")
+            LoxErrors.error(self._line, "Unterminated string")
             return
         self._advance()  # step over '"'
         # +-1 are trimming the surrounding '"'
