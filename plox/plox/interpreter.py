@@ -1,3 +1,4 @@
+from plox.statements import Stmt, ExpressionStmt, PrintStmt
 from plox.expressions import Expr, Literal, Grouping, Unary, Binary
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
@@ -5,12 +6,25 @@ from functools import singledispatchmethod
 
 
 class Interpreter:
-    def interpret(self, expr: Expr):
+    def interpret(self, statements: Stmt):
         try:
-            value = self._evaluate(expr)
-            print(self._stringify(value))
+            for statement in statements:
+                self._execute(statement)
         except LoxRuntimeError as e:
             LoxErrors.runtime_error(e)
+
+    @singledispatchmethod
+    def _execute(self, stmt: Stmt):
+        raise NotImplementedError
+
+    @_execute.register
+    def _(self, stmt: ExpressionStmt):
+        self._evaluate(stmt.expr)
+
+    @_execute.register
+    def _(self, stmt: PrintStmt):
+        value = self._evaluate(stmt.expr)
+        print(self._stringify(value))
 
     @singledispatchmethod
     def _evaluate(self, expr: Expr):
