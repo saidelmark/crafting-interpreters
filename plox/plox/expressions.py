@@ -33,3 +33,9 @@ class Literal(Expr):
 @dataclass
 class Variable(Expr):
     name: Token
+
+
+@dataclass
+class Assignment(Expr):
+    name: Token
+    value: Expr

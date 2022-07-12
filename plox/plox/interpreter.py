@@ -1,5 +1,5 @@
 from plox.statements import Stmt, ExpressionStmt, PrintStmt, VarStmt
-from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable
+from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
 from plox.environment import Environment
@@ -13,7 +13,8 @@ class Interpreter:
     def interpret(self, statements: Stmt):
         try:
             for statement in statements:
-                self._execute(statement)
+                if statement is not None:
+                    self._execute(statement)
         except LoxRuntimeError as e:
             LoxErrors.runtime_error(e)
 
@@ -40,6 +41,12 @@ class Interpreter:
     @singledispatchmethod
     def _evaluate(self, expr: Expr):
         raise NotImplementedError
+
+    @_evaluate.register
+    def _(self, stmt: Assignment):
+        value = self._evaluate(stmt.value)
+        self._env.assign(stmt.name, value)
+        return value
 
     @_evaluate.register
     def _(self, expr: Binary):

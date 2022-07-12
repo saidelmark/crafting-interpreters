@@ -50,7 +50,19 @@ class Parser:
         return ExpressionStmt(value)
 
     def _expression(self) -> Expr:
-        return self._equality()
+        return self._assignment()
+
+    def _assignment(self):
+        expr: Expr = self._equality()
+
+        if self._match(TokenType.EQUAL):
+            equals: Token = self._previous()
+            value: Expr = self._assignment()
+            if isinstance(expr, Variable):
+                name: Token = expr.name
+                return Assignment(name, value)
+            self._error(equals, "Invalid assignment target")
+        return expr
 
     def _equality(self) -> Expr:
         expr = self._comparison()
