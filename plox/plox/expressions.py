@@ -28,3 +28,8 @@ class Grouping(Expr):
 @dataclass
 class Literal(Expr):
     value: Any
+
+
+@dataclass
+class Variable(Expr):
+    name: Token

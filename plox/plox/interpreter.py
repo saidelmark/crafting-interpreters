@@ -1,11 +1,15 @@
-from plox.statements import Stmt, ExpressionStmt, PrintStmt
-from plox.expressions import Expr, Literal, Grouping, Unary, Binary
+from plox.statements import Stmt, ExpressionStmt, PrintStmt, VarStmt
+from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
+from plox.environment import Environment
 from functools import singledispatchmethod
 
 
 class Interpreter:
+    def __init__(self):
+        self._env = Environment()
+
     def interpret(self, statements: Stmt):
         try:
             for statement in statements:
@@ -25,6 +29,13 @@ class Interpreter:
     def _(self, stmt: PrintStmt):
         value = self._evaluate(stmt.expr)
         print(self._stringify(value))
+
+    @_execute.register
+    def _(self, stmt: VarStmt):
+        value = None
+        if stmt.init is not None:
+            value = self._evaluate(stmt.init)
+        self._env.define(stmt.name.lexeme, value)
 
     @singledispatchmethod
     def _evaluate(self, expr: Expr):
@@ -83,6 +94,10 @@ class Interpreter:
             case TokenType.MINUS:
                 self._check_is_number(expr.operator, right)
                 return -right
+
+    @_evaluate.register
+    def _(self, expr: Variable):
+        return self._env.get(expr.name)
 
     @_evaluate.register
     def _(self, expr: Grouping):

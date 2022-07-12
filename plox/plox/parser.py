@@ -1,6 +1,6 @@
 from plox.token_types import Token, TokenType
-from plox.statements import Stmt, PrintStmt, ExpressionStmt
-from plox.expressions import Expr, Binary, Unary, Literal, Grouping
+from plox.statements import Stmt, PrintStmt, ExpressionStmt, VarStmt
+from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable
 from plox.errors import LoxErrors
 
 
@@ -12,8 +12,26 @@ class Parser:
     def parse(self) -> [Stmt]:
         statements: [Stmt] = []
         while not self._is_at_and():
-            statements.append(self._statement())
+            statements.append(self._declaration())
         return statements
+
+    def _declaration(self) -> Stmt:
+        try:
+            if self._match(TokenType.VAR):
+                return self._var_declaration()
+            return self._statement()
+        except Exception:
+            self._synchronize()
+            return None
+
+    def _var_declaration(self):
+        name: Token = self._consume(
+            TokenType.IDENTIFIER, 'Expect variable name.')
+        init: Expr = None
+        if (self._match(TokenType.EQUAL)):
+            init = self._expression()
+        self._consume(TokenType.SEMICOLON, 'No semicolon')
+        return VarStmt(name, init)
 
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
@@ -97,6 +115,8 @@ class Parser:
             self._consume(TokenType.RIGHT_PAREN,
                           "Expect ')' after expression.")
             return Grouping(expr)
+        if self._match(TokenType.IDENTIFIER):
+            return Variable(self._previous())
         raise Exception(self._peek(), "Expect expression")
 
     # Methods that work with the tokens stream
@@ -138,7 +158,7 @@ class Parser:
             LoxErrors.report(token.line, " at '" + token.lexeme + "'", message)
         raise Exception("Parse error")
 
-    def synchronize(self):
+    def _synchronize(self):
         self._advance()
         while not self._is_at_and():
             if self._previous().type == TokenType.SEMICOLON:
