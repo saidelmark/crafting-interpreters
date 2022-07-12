@@ -1,7 +1,7 @@
 from plox.token_types import Token, TokenType
 from plox.statements import Stmt, PrintStmt, ExpressionStmt, VarStmt
-from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable
-from plox.errors import LoxErrors
+from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable, Assignment
+from plox.errors import LoxErrors, LoxParseError
 
 
 class Parser:
@@ -20,7 +20,7 @@ class Parser:
             if self._match(TokenType.VAR):
                 return self._var_declaration()
             return self._statement()
-        except Exception:
+        except LoxParseError:
             self._synchronize()
             return None
 
@@ -117,7 +117,7 @@ class Parser:
             return Grouping(expr)
         if self._match(TokenType.IDENTIFIER):
             return Variable(self._previous())
-        raise Exception(self._peek(), "Expect expression")
+        raise self._error(self._peek(), "Expect expression")
 
     # Methods that work with the tokens stream
     def _match(self, *types: TokenType) -> bool:
@@ -153,10 +153,10 @@ class Parser:
 
     def _error(self, token: Token, message: str):
         if token.type == TokenType.EOF:
-            LoxErrors.report(token.line, " at end", message)
+            LoxErrors.report(token.line, "at end", message)
         else:
-            LoxErrors.report(token.line, " at '" + token.lexeme + "'", message)
-        raise Exception("Parse error")
+            LoxErrors.report(token.line, "at '" + token.lexeme + "'", message)
+        return LoxParseError()
 
     def _synchronize(self):
         self._advance()
