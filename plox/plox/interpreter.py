@@ -129,11 +129,10 @@ class Interpreter:
                 return False
         return left == right
 
-    def _check_is_number(self, operator: TokenType, operand):
+    def _check_is_number(self, operator: Token, operand):
         if isinstance(operand, float):
             return
-        # TODO: add error message
-        raise Exception
+        raise LoxRuntimeError(operator, 'Operand must be a number')
 
     def _check_number_operands(self, operator: Token, left, right):
         if isinstance(left, float) and isinstance(right, float):
