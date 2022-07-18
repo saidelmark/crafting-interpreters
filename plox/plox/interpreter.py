@@ -1,4 +1,4 @@
-from plox.statements import Stmt, Expression, Print, Var
+from plox.statements import Stmt, Expression, Print, Var, Block
 from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
@@ -37,6 +37,19 @@ class Interpreter:
         if stmt.init is not None:
             value = self._evaluate(stmt.init)
         self._env.define(stmt.name.lexeme, value)
+
+    @_execute.register
+    def _(self, stmt: Block):
+        self._execute_block(stmt.statements, Environment(self._env))
+
+    def _execute_block(self, statements: [Stmt], env: Environment):
+        prev_env = self._env
+        self._env = env
+        try:
+            for statement in statements:
+                self._execute(statement)
+        finally:
+            self._env = prev_env
 
     @singledispatchmethod
     def _evaluate(self, expr: Expr):

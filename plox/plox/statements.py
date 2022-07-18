@@ -21,3 +21,8 @@ class Print(Stmt):
 class Var(Stmt):
     name: Token
     init: Expr
+
+
+@dataclass
+class Block(Stmt):
+    statements: [Stmt]
