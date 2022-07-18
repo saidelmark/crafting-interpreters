@@ -1,5 +1,5 @@
 from plox.token_types import Token, TokenType
-from plox.statements import Stmt, PrintStmt, ExpressionStmt, VarStmt
+from plox.statements import Stmt, Print, Expression, Var
 from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable, Assignment
 from plox.errors import LoxErrors, LoxParseError
 
@@ -31,7 +31,7 @@ class Parser:
         if (self._match(TokenType.EQUAL)):
             init = self._expression()
         self._consume(TokenType.SEMICOLON, 'No semicolon')
-        return VarStmt(name, init)
+        return Var(name, init)
 
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
@@ -42,12 +42,12 @@ class Parser:
     def _print_stmt(self) -> Stmt:
         value: Expr = self._expression()
         self._consume(TokenType.SEMICOLON, 'Expect \';\' after value')
-        return PrintStmt(value)
+        return Print(value)
 
     def _expression_stmt(self) -> Stmt:
         value: Expr = self._expression()
         self._consume(TokenType.SEMICOLON, 'Expect \';\' after value')
-        return ExpressionStmt(value)
+        return Expression(value)
 
     def _expression(self) -> Expr:
         return self._assignment()

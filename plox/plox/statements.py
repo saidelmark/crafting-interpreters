@@ -8,16 +8,16 @@ class Stmt:
 
 
 @dataclass
-class ExpressionStmt(Stmt):
+class Expression(Stmt):
     expr: Expr
 
 
 @dataclass
-class PrintStmt(Stmt):
+class Print(Stmt):
     expr: Expr
 
 
 @dataclass
-class VarStmt(Stmt):
+class Var(Stmt):
     name: Token
     init: Expr

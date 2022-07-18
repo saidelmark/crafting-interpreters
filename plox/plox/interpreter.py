@@ -1,4 +1,4 @@
-from plox.statements import Stmt, ExpressionStmt, PrintStmt, VarStmt
+from plox.statements import Stmt, Expression, Print, Var
 from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
@@ -23,16 +23,16 @@ class Interpreter:
         raise NotImplementedError
 
     @_execute.register
-    def _(self, stmt: ExpressionStmt):
+    def _(self, stmt: Expression):
         self._evaluate(stmt.expr)
 
     @_execute.register
-    def _(self, stmt: PrintStmt):
+    def _(self, stmt: Print):
         value = self._evaluate(stmt.expr)
         print(self._stringify(value))
 
     @_execute.register
-    def _(self, stmt: VarStmt):
+    def _(self, stmt: Var):
         value = None
         if stmt.init is not None:
             value = self._evaluate(stmt.init)
