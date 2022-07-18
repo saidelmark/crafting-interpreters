@@ -1,6 +1,7 @@
 from plox.token_types import Token, TokenType
-from plox.expressions import Expr, Binary, Unary, Literal, Grouping
-from plox.errors import LoxErrors
+from plox.statements import Stmt, Print, Expression, Var, Block
+from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable, Assignment
+from plox.errors import LoxErrors, LoxParseError
 
 
 class Parser:
@@ -8,14 +9,69 @@ class Parser:
         self._tokens = tokens
         self._current = 0
 
-    def parse(self) -> Expr:
+    def parse(self) -> [Stmt]:
+        statements: [Stmt] = []
+        while not self._is_at_and():
+            statements.append(self._declaration())
+        return statements
+
+    def _declaration(self) -> Stmt:
         try:
-            return self._expression()
-        except Exception:
+            if self._match(TokenType.VAR):
+                return self._var_declaration()
+            return self._statement()
+        except LoxParseError:
+            self._synchronize()
             return None
 
+    def _var_declaration(self):
+        name: Token = self._consume(
+            TokenType.IDENTIFIER, 'Expect variable name.')
+        init: Expr = None
+        if (self._match(TokenType.EQUAL)):
+            init = self._expression()
+        self._consume(TokenType.SEMICOLON, 'No semicolon')
+        return Var(name, init)
+
+    def _statement(self) -> Stmt:
+        if self._match(TokenType.PRINT):
+            return self._print_stmt()
+        elif self._match(TokenType.LEFT_BRACE):
+            return Block(self._block())
+        else:
+            return self._expression_stmt()
+
+    def _print_stmt(self) -> Stmt:
+        value: Expr = self._expression()
+        self._consume(TokenType.SEMICOLON, 'Expect \';\' after value')
+        return Print(value)
+
+    def _expression_stmt(self) -> Stmt:
+        value: Expr = self._expression()
+        self._consume(TokenType.SEMICOLON, 'Expect \';\' after value')
+        return Expression(value)
+
+    def _block(self) -> [Stmt]:
+        statements: [Stmt] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_and():
+            statements.append(self._declaration())
+        self._consume(TokenType.RIGHT_BRACE, 'Expected "}" after a block')
+        return statements
+
     def _expression(self) -> Expr:
-        return self._equality()
+        return self._assignment()
+
+    def _assignment(self):
+        expr: Expr = self._equality()
+
+        if self._match(TokenType.EQUAL):
+            equals: Token = self._previous()
+            value: Expr = self._assignment()
+            if isinstance(expr, Variable):
+                name: Token = expr.name
+                return Assignment(name, value)
+            self._error(equals, "Invalid assignment target")
+        return expr
 
     def _equality(self) -> Expr:
         expr = self._comparison()
@@ -80,7 +136,9 @@ class Parser:
             self._consume(TokenType.RIGHT_PAREN,
                           "Expect ')' after expression.")
             return Grouping(expr)
-        raise Exception(self._peek(), "Expect expression")
+        if self._match(TokenType.IDENTIFIER):
+            return Variable(self._previous())
+        raise self._error(self._peek(), "Expect expression")
 
     # Methods that work with the tokens stream
     def _match(self, *types: TokenType) -> bool:
@@ -116,12 +174,12 @@ class Parser:
 
     def _error(self, token: Token, message: str):
         if token.type == TokenType.EOF:
-            LoxErrors.report(token.line, " at end", message)
+            LoxErrors.report(token.line, "at end", message)
         else:
-            LoxErrors.report(token.line, " at '" + token.lexeme + "'", message)
-        raise Exception("Parse error")
+            LoxErrors.report(token.line, "at '" + token.lexeme + "'", message)
+        return LoxParseError()
 
-    def synchronize(self):
+    def _synchronize(self):
         self._advance()
         while not self._is_at_and():
             if self._previous().type == TokenType.SEMICOLON:

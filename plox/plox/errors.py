@@ -29,3 +29,8 @@ class LoxRuntimeError(Exception):
 
     def __str__(self):
         return f"{self.token.lexeme}: {self.message}"
+
+
+class LoxParseError(Exception):
+    def __init__(self):
+        super().__init__()

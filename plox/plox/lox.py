@@ -3,6 +3,7 @@ from plox.scanner import Scanner
 from plox.parser import Parser
 from plox.errors import LoxErrors
 from plox.interpreter import Interpreter
+from plox.statements import Stmt
 
 
 class Lox:
@@ -31,5 +32,5 @@ class Lox:
         scanner = Scanner(src)
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
-        expression = parser.parse()
-        self._interpreter.interpret(expression)
+        statements: [Stmt] = parser.parse()
+        self._interpreter.interpret(statements)

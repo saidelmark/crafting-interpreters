@@ -1,20 +1,65 @@
-from plox.expressions import Expr, Literal, Grouping, Unary, Binary
+from plox.statements import Stmt, Expression, Print, Var, Block
+from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
+from plox.environment import Environment
 from functools import singledispatchmethod
 
 
 class Interpreter:
-    def interpret(self, expr: Expr):
+    def __init__(self):
+        self._env = Environment()
+
+    def interpret(self, statements: Stmt):
         try:
-            value = self._evaluate(expr)
-            print(self._stringify(value))
+            for statement in statements:
+                if statement is not None:
+                    self._execute(statement)
         except LoxRuntimeError as e:
             LoxErrors.runtime_error(e)
 
     @singledispatchmethod
+    def _execute(self, stmt: Stmt):
+        raise NotImplementedError
+
+    @_execute.register
+    def _(self, stmt: Expression):
+        self._evaluate(stmt.expr)
+
+    @_execute.register
+    def _(self, stmt: Print):
+        value = self._evaluate(stmt.expr)
+        print(self._stringify(value))
+
+    @_execute.register
+    def _(self, stmt: Var):
+        value = None
+        if stmt.init is not None:
+            value = self._evaluate(stmt.init)
+        self._env.define(stmt.name.lexeme, value)
+
+    @_execute.register
+    def _(self, stmt: Block):
+        self._execute_block(stmt.statements, Environment(self._env))
+
+    def _execute_block(self, statements: [Stmt], env: Environment):
+        prev_env = self._env
+        self._env = env
+        try:
+            for statement in statements:
+                self._execute(statement)
+        finally:
+            self._env = prev_env
+
+    @singledispatchmethod
     def _evaluate(self, expr: Expr):
         raise NotImplementedError
+
+    @_evaluate.register
+    def _(self, stmt: Assignment):
+        value = self._evaluate(stmt.value)
+        self._env.assign(stmt.name, value)
+        return value
 
     @_evaluate.register
     def _(self, expr: Binary):
@@ -71,6 +116,10 @@ class Interpreter:
                 return -right
 
     @_evaluate.register
+    def _(self, expr: Variable):
+        return self._env.get(expr.name)
+
+    @_evaluate.register
     def _(self, expr: Grouping):
         return self._evaluate(expr.expression)
 
@@ -93,11 +142,10 @@ class Interpreter:
                 return False
         return left == right
 
-    def _check_is_number(self, operator: TokenType, operand):
+    def _check_is_number(self, operator: Token, operand):
         if isinstance(operand, float):
             return
-        # TODO: add error message
-        raise Exception
+        raise LoxRuntimeError(operator, 'Operand must be a number')
 
     def _check_number_operands(self, operator: Token, left, right):
         if isinstance(left, float) and isinstance(right, float):
