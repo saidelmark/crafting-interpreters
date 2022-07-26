@@ -24,5 +24,18 @@ class Var(Stmt):
 
 
 @dataclass
+class While(Stmt):
+    condition: Expr
+    body: Stmt
+
+
+@dataclass
 class Block(Stmt):
     statements: [Stmt]
+
+
+@dataclass
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt

@@ -1,5 +1,5 @@
-from plox.statements import Stmt, Expression, Print, Var, Block
-from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment
+from plox.statements import Stmt, Expression, Print, Var, Block, If, While
+from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment, Logical
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
 from plox.environment import Environment
@@ -23,6 +23,13 @@ class Interpreter:
         raise NotImplementedError
 
     @_execute.register
+    def _(self, stmt: If):
+        if self._is_truthy(stmt.condition):
+            self._execute(stmt.then_branch)
+        else:
+            self._execute(stmt.else_branch)
+
+    @_execute.register
     def _(self, stmt: Expression):
         self._evaluate(stmt.expr)
 
@@ -37,6 +44,11 @@ class Interpreter:
         if stmt.init is not None:
             value = self._evaluate(stmt.init)
         self._env.define(stmt.name.lexeme, value)
+
+    @_execute.register
+    def _(self, stmt: While):
+        while self._is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.body)
 
     @_execute.register
     def _(self, stmt: Block):
@@ -126,6 +138,17 @@ class Interpreter:
     @_evaluate.register
     def _(self, expr: Literal):
         return expr.value
+
+    @_evaluate.register
+    def _(self, expr: Logical):
+        left = self._evaluate(expr.left)
+        if expr.operator.type == TokenType.OR:
+            if self._is_truthy(left):
+                return left
+        else:
+            if not self._is_truthy(left):
+                return left
+        return self._evaluate(expr.right)
 
     def _is_truthy(self, obj) -> bool:
         if obj is None:
