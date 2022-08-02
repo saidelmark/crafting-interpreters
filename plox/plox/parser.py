@@ -1,5 +1,5 @@
 from plox.token_types import Token, TokenType
-from plox.statements import Stmt, Print, Expression, Var, Block, If, While, Function
+from plox.statements import Stmt, Print, Expression, Var, Block, If, While, Function, Return
 from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable, Assignment, Logical, Call
 from plox.errors import LoxErrors, LoxParseError
 
@@ -71,6 +71,8 @@ class Parser:
             return self._if_stmt()
         elif self._match(TokenType.PRINT):
             return self._print_stmt()
+        elif self._match(TokenType.RETURN):
+            return self._return_stmt()
         elif self._match(TokenType.WHILE):
             return self._while_stmt()
         elif self._match(TokenType.LEFT_BRACE):
@@ -127,6 +129,14 @@ class Parser:
         value: Expr = self._expression()
         self._consume(TokenType.SEMICOLON, 'Expected \';\' after value')
         return Print(value)
+
+    def _return_stmt(self):
+        keyword: Token = self._previous()
+        value: Expr = None
+        if not self._check(TokenType.SEMICOLON):
+            value = self._expression()
+        self._consume(TokenType.SEMICOLON, 'Expected ";" after return value.')
+        return Return(keyword, value)
 
     def _expression_stmt(self) -> Stmt:
         value: Expr = self._expression()

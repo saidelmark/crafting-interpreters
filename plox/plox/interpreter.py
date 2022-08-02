@@ -1,9 +1,10 @@
-from plox.statements import Stmt, Expression, Print, Var, Block, If, While, Function
+from plox.statements import Stmt, Expression, Print, Var, Block, If, While, Function, Return
 from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment, Logical, Call
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
 from plox.environment import Environment
 from plox.callable import LoxCallable, Clock, LoxFunction
+from plox.return_ex import LoxReturn
 from functools import singledispatchmethod
 
 
@@ -41,11 +42,19 @@ class Interpreter:
     def _(self, stmt: Function):
         function = LoxFunction(stmt)
         self._env.define(stmt.name.lexeme, function)
+        return None
 
     @_execute.register
     def _(self, stmt: Print):
         value = self._evaluate(stmt.expr)
         print(self._stringify(value))
+
+    @_execute.register
+    def _(self, stmt: Return):
+        value = None
+        if stmt.value is not None:
+            value = self._evaluate(stmt.value)
+        raise LoxReturn(value)
 
     @_execute.register
     def _(self, stmt: Var):

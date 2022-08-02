@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from plox.environment import Environment
 from plox.statements import Function
+from plox.return_ex import LoxReturn
 import time
 
 
@@ -33,7 +34,11 @@ class LoxFunction(LoxCallable):
         env = Environment(interpreter.globals)
         for i in range(len(self._declaration.params)):
             env.define(self._declaration.params[i].lexeme, args[i])
-        interpreter.execute_block(self._declaration.body, env)
+        try:
+            interpreter.execute_block(self._declaration.body, env)
+        except LoxReturn as ret:
+            return ret.value
+        return None
 
     def arity(self):
         return len(self._declaration.params)
