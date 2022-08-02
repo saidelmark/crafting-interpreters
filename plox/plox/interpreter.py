@@ -42,7 +42,7 @@ class Interpreter:
 
     @_execute.register
     def _(self, stmt: Function):
-        function = LoxFunction(stmt)
+        function = LoxFunction(stmt, self._env)
         self._env.define(stmt.name.lexeme, function)
         return None
 
