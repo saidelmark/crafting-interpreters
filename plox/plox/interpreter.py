@@ -29,10 +29,12 @@ class Interpreter:
 
     @_execute.register
     def _(self, stmt: If):
-        if self._is_truthy(stmt.condition):
+        if self._is_truthy(self._evaluate(stmt.condition)):
             self._execute(stmt.then_branch)
-        else:
+        elif stmt.else_branch is not None:
             self._execute(stmt.else_branch)
+        else:
+            return None
 
     @_execute.register
     def _(self, stmt: Expression):
