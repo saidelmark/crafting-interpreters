@@ -15,6 +15,13 @@ class Binary(Expr):
 
 
 @dataclass
+class Call(Expr):
+    callee: Expr
+    paren: Token
+    args: [Expr]
+
+
+@dataclass
 class Logical(Expr):
     left: Expr
     operator: Token

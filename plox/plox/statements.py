@@ -39,3 +39,10 @@ class If(Stmt):
     condition: Expr
     then_branch: Stmt
     else_branch: Stmt
+
+
+@dataclass
+class Function(Stmt):
+    name: Token
+    params: [Token]
+    body: [Stmt]
