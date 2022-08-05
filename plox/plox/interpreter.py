@@ -1,9 +1,35 @@
-from plox.statements import Stmt, Expression, Print, Var, Block, If, While, Function, Return
-from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment, Logical, Call
+from plox.statements import (
+    Block,
+    Expression,
+    Function,
+    If,
+    Lambda,
+    Print,
+    Return,
+    Stmt,
+    Var,
+    While,
+)
+from plox.expressions import (
+    Assignment,
+    Binary,
+    Call,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
 from plox.token_types import TokenType, Token
 from plox.errors import LoxErrors, LoxRuntimeError
 from plox.environment import Environment
-from plox.callable import LoxCallable, Clock, LoxFunction
+from plox.callable import (
+    Clock,
+    LoxCallable,
+    LoxFunction,
+    LoxLambda,
+)
 from plox.return_ex import LoxReturn
 from functools import singledispatchmethod
 
@@ -138,6 +164,10 @@ class Interpreter:
                 return left * right
 
     @_evaluate.register
+    def _(self, expr: Lambda):
+        return LoxLambda(expr, self._env)
+
+    @_evaluate.register
     def _(self, expr: Call):
         callee = self._evaluate(expr.callee)
         args = []
@@ -150,7 +180,7 @@ class Interpreter:
         if len(args) != function.arity():
             raise LoxRuntimeError(
                 expr.paren,
-                f'Expected {function.arity} arguments, but got {len(args)}.')
+                f'Expected {function.arity()} arguments, but got {len(args)}.')
         return function.call(self, args)
 
     @_evaluate.register

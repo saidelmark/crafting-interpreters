@@ -1,6 +1,27 @@
 from plox.token_types import Token, TokenType
-from plox.statements import Stmt, Print, Expression, Var, Block, If, While, Function, Return
-from plox.expressions import Expr, Binary, Unary, Literal, Grouping, Variable, Assignment, Logical, Call
+from plox.statements import (
+    Block,
+    Expression,
+    Function,
+    If,
+    Lambda,
+    Print,
+    Return,
+    Stmt,
+    Var,
+    While,
+)
+from plox.expressions import (
+    Assignment,
+    Binary,
+    Call,
+    Expr,
+    Grouping,
+    Literal,
+    Logical,
+    Unary,
+    Variable,
+)
 from plox.errors import LoxErrors, LoxParseError
 
 
@@ -28,7 +49,18 @@ class Parser:
 
     def _fun_declaration(self, kind: str) -> Function:
         name = self._consume(TokenType.IDENTIFIER, f'Expected {kind} name')
-        self._consume(TokenType.LEFT_PAREN, f'Expected "(" after {kind} name.')
+        parameters = self._fun_parameters(kind)
+        body = self._fun_body(kind)
+        return Function(name, parameters, body)
+
+    def _lambda_declaration(self):
+        parameters = self._fun_parameters('lambda')
+        body = self._fun_body('lambda')
+        return Lambda(parameters, body)
+
+    def _fun_parameters(self, kind: str) -> [Token]:
+        self._consume(TokenType.LEFT_PAREN,
+                      f'Expected "(" before {kind} parameters.')
         parameters: [Token] = []
         if not self._check(TokenType.RIGHT_PAREN):
             while True:
@@ -40,11 +72,13 @@ class Parser:
                 if not self._match(TokenType.COMMA):
                     break
         self._consume(TokenType.RIGHT_PAREN, 'Expected ")" after parameters.')
+        return parameters
 
+    def _fun_body(self, kind) -> [Stmt]:
         self._consume(TokenType.LEFT_BRACE,
                       f'Expected "{{" before {kind} body')
         body = self._block()
-        return Function(name, parameters, body)
+        return body
 
     def _var_declaration(self):
         name: Token = self._consume(
@@ -255,6 +289,8 @@ class Parser:
         return Call(callee, paren, args)
 
     def _primary(self) -> Expr:
+        if self._match(TokenType.FUN):
+            return self._lambda_declaration()
         if self._match(TokenType.FALSE):
             return Literal(False)
         if self._match(TokenType.TRUE):

@@ -52,3 +52,9 @@ class Function(Stmt):
     name: Token
     params: [Token]
     body: [Stmt]
+
+
+@dataclass
+class Lambda(Expr):
+    params: [Token]
+    body: [Stmt]
