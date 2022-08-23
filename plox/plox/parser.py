@@ -32,7 +32,7 @@ class Parser:
 
     def parse(self) -> [Stmt]:
         statements: [Stmt] = []
-        while not self._is_at_and():
+        while not self._is_at_end():
             statements.append(self._declaration())
         return statements
 
@@ -179,7 +179,7 @@ class Parser:
 
     def _block(self) -> [Stmt]:
         statements: [Stmt] = []
-        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_and():
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
             statements.append(self._declaration())
         self._consume(TokenType.RIGHT_BRACE, 'Expected "}" after a block')
         return statements
@@ -325,16 +325,16 @@ class Parser:
         raise self._error(self._peek(), message)
 
     def _check(self, type: TokenType) -> bool:
-        if self._is_at_and():
+        if self._is_at_end():
             return False
         return self._peek().type == type
 
     def _advance(self) -> Token:
-        if not self._is_at_and():
+        if not self._is_at_end():
             self._current += 1
         return self._previous()
 
-    def _is_at_and(self) -> bool:
+    def _is_at_end(self) -> bool:
         return self._peek().type == TokenType.EOF
 
     def _peek(self) -> Token:
@@ -352,7 +352,7 @@ class Parser:
 
     def _synchronize(self):
         self._advance()
-        while not self._is_at_and():
+        while not self._is_at_end():
             if self._previous().type == TokenType.SEMICOLON:
                 return
             match self._peek().type:
