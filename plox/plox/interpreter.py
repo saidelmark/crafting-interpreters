@@ -1,14 +1,22 @@
-from plox.statements import Stmt, Expression, Print, Var, Block, If, While
-from plox.expressions import Expr, Literal, Grouping, Unary, Binary, Variable, Assignment, Logical
-from plox.token_types import TokenType, Token
-from plox.errors import LoxErrors, LoxRuntimeError
-from plox.environment import Environment
 from functools import singledispatchmethod
+
+from plox.callable import Clock, LoxCallable, LoxFunction, LoxLambda
+from plox.environment import Environment
+from plox.errors import LoxErrors, LoxRuntimeError
+from plox.expressions import (Assignment, Binary, Call, Expr, Grouping,
+                              Literal, Logical, Unary, Variable)
+from plox.return_ex import LoxReturn
+from plox.statements import (Block, Expression, Function, If, Lambda, Print,
+                             Return, Stmt, Var, While)
+from plox.token_types import Token, TokenType
 
 
 class Interpreter:
     def __init__(self):
-        self._env = Environment()
+        self.globals = Environment()
+        self._env = self.globals
+
+        self.globals.define('clock', Clock())
 
     def interpret(self, statements: Stmt):
         try:
@@ -24,19 +32,34 @@ class Interpreter:
 
     @_execute.register
     def _(self, stmt: If):
-        if self._is_truthy(stmt.condition):
+        if self._is_truthy(self._evaluate(stmt.condition)):
             self._execute(stmt.then_branch)
-        else:
+        elif stmt.else_branch is not None:
             self._execute(stmt.else_branch)
+        else:
+            return None
 
     @_execute.register
     def _(self, stmt: Expression):
         self._evaluate(stmt.expr)
 
     @_execute.register
+    def _(self, stmt: Function):
+        function = LoxFunction(stmt, self._env)
+        self._env.define(stmt.name.lexeme, function)
+        return None
+
+    @_execute.register
     def _(self, stmt: Print):
         value = self._evaluate(stmt.expr)
         print(self._stringify(value))
+
+    @_execute.register
+    def _(self, stmt: Return):
+        value = None
+        if stmt.value is not None:
+            value = self._evaluate(stmt.value)
+        raise LoxReturn(value)
 
     @_execute.register
     def _(self, stmt: Var):
@@ -52,9 +75,9 @@ class Interpreter:
 
     @_execute.register
     def _(self, stmt: Block):
-        self._execute_block(stmt.statements, Environment(self._env))
+        self.execute_block(stmt.statements, Environment(self._env))
 
-    def _execute_block(self, statements: [Stmt], env: Environment):
+    def execute_block(self, statements: [Stmt], env: Environment):
         prev_env = self._env
         self._env = env
         try:
@@ -116,6 +139,26 @@ class Interpreter:
             case TokenType.STAR:
                 self._check_number_operands(expr.operator, left, right)
                 return left * right
+
+    @_evaluate.register
+    def _(self, expr: Lambda):
+        return LoxLambda(expr, self._env)
+
+    @_evaluate.register
+    def _(self, expr: Call):
+        callee = self._evaluate(expr.callee)
+        args = []
+        for arg in expr.args:
+            args.append(self._evaluate(arg))
+        if not isinstance(callee, LoxCallable):
+            raise LoxRuntimeError(
+                expr.paren, 'Can only call functions and classes')
+        function: LoxCallable = callee
+        if len(args) != function.arity():
+            raise LoxRuntimeError(
+                expr.paren,
+                f'Expected {function.arity()} arguments, but got {len(args)}.')
+        return function.call(self, args)
 
     @_evaluate.register
     def _(self, expr: Unary):

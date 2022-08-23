@@ -1,5 +1,6 @@
-from plox.expressions import Expr
 from dataclasses import dataclass
+
+from plox.expressions import Expr
 from plox.token_types import Token
 
 
@@ -15,6 +16,12 @@ class Expression(Stmt):
 @dataclass
 class Print(Stmt):
     expr: Expr
+
+
+@dataclass
+class Return(Stmt):
+    keyword: Token
+    value: Expr
 
 
 @dataclass
@@ -39,3 +46,16 @@ class If(Stmt):
     condition: Expr
     then_branch: Stmt
     else_branch: Stmt
+
+
+@dataclass
+class Function(Stmt):
+    name: Token
+    params: [Token]
+    body: [Stmt]
+
+
+@dataclass
+class Lambda(Expr):
+    params: [Token]
+    body: [Stmt]

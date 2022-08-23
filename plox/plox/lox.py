@@ -1,8 +1,9 @@
 import sys
-from plox.scanner import Scanner
-from plox.parser import Parser
+
 from plox.errors import LoxErrors
 from plox.interpreter import Interpreter
+from plox.parser import Parser
+from plox.scanner import Scanner
 from plox.statements import Stmt
 
 

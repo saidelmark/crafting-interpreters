@@ -1,4 +1,5 @@
 import sys
+
 from plox.token_types import Token
 
 

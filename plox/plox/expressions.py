@@ -1,6 +1,7 @@
-from plox.token_types import Token
 from dataclasses import dataclass
 from typing import Any
+
+from plox.token_types import Token
 
 
 class Expr:
@@ -12,6 +13,13 @@ class Binary(Expr):
     left: Expr
     operator: Token
     right: Expr
+
+
+@dataclass
+class Call(Expr):
+    callee: Expr
+    paren: Token
+    args: [Expr]
 
 
 @dataclass
