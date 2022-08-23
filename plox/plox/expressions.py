@@ -1,6 +1,7 @@
-from plox.token_types import Token
 from dataclasses import dataclass
 from typing import Any
+
+from plox.token_types import Token
 
 
 class Expr:

@@ -1,4 +1,5 @@
 from functools import singledispatchmethod
+
 from plox.expressions import Binary, Expr, Grouping, Literal, Unary
 
 

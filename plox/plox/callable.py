@@ -1,8 +1,9 @@
-from abc import abstractmethod
-from plox.environment import Environment
-from plox.statements import Function, Lambda
-from plox.return_ex import LoxReturn
 import time
+from abc import abstractmethod
+
+from plox.environment import Environment
+from plox.return_ex import LoxReturn
+from plox.statements import Function, Lambda
 
 
 class LoxCallable:

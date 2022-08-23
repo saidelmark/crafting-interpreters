@@ -1,28 +1,9 @@
-from plox.token_types import Token, TokenType
-from plox.statements import (
-    Block,
-    Expression,
-    Function,
-    If,
-    Lambda,
-    Print,
-    Return,
-    Stmt,
-    Var,
-    While,
-)
-from plox.expressions import (
-    Assignment,
-    Binary,
-    Call,
-    Expr,
-    Grouping,
-    Literal,
-    Logical,
-    Unary,
-    Variable,
-)
 from plox.errors import LoxErrors, LoxParseError
+from plox.expressions import (Assignment, Binary, Call, Expr, Grouping,
+                              Literal, Logical, Unary, Variable)
+from plox.statements import (Block, Expression, Function, If, Lambda, Print,
+                             Return, Stmt, Var, While)
+from plox.token_types import Token, TokenType
 
 
 class Parser:

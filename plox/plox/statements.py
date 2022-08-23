@@ -1,5 +1,6 @@
-from plox.expressions import Expr
 from dataclasses import dataclass
+
+from plox.expressions import Expr
 from plox.token_types import Token
 
 

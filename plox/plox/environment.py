@@ -1,5 +1,5 @@
-from plox.token_types import Token
 from plox.errors import LoxRuntimeError
+from plox.token_types import Token
 
 
 class Environment:

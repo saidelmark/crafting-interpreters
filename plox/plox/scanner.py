@@ -1,6 +1,7 @@
 import string
-from plox.token_types import Token, TokenType, KEYWORD_TOKEN_TYPES
+
 from plox.errors import LoxErrors
+from plox.token_types import KEYWORD_TOKEN_TYPES, Token, TokenType
 
 
 class Scanner:

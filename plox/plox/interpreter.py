@@ -1,37 +1,14 @@
-from plox.statements import (
-    Block,
-    Expression,
-    Function,
-    If,
-    Lambda,
-    Print,
-    Return,
-    Stmt,
-    Var,
-    While,
-)
-from plox.expressions import (
-    Assignment,
-    Binary,
-    Call,
-    Expr,
-    Grouping,
-    Literal,
-    Logical,
-    Unary,
-    Variable,
-)
-from plox.token_types import TokenType, Token
-from plox.errors import LoxErrors, LoxRuntimeError
-from plox.environment import Environment
-from plox.callable import (
-    Clock,
-    LoxCallable,
-    LoxFunction,
-    LoxLambda,
-)
-from plox.return_ex import LoxReturn
 from functools import singledispatchmethod
+
+from plox.callable import Clock, LoxCallable, LoxFunction, LoxLambda
+from plox.environment import Environment
+from plox.errors import LoxErrors, LoxRuntimeError
+from plox.expressions import (Assignment, Binary, Call, Expr, Grouping,
+                              Literal, Logical, Unary, Variable)
+from plox.return_ex import LoxReturn
+from plox.statements import (Block, Expression, Function, If, Lambda, Print,
+                             Return, Stmt, Var, While)
+from plox.token_types import Token, TokenType
 
 
 class Interpreter:
