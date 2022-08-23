@@ -47,7 +47,10 @@ class Parser:
             self._synchronize()
             return None
 
-    def _fun_declaration(self, kind: str) -> Function:
+    def _fun_declaration(self, kind: str) -> Stmt:
+        if self._check(TokenType.LEFT_PAREN):
+            self._current -= 1
+            return self._statement()
         name = self._consume(TokenType.IDENTIFIER, f'Expected {kind} name')
         parameters = self._fun_parameters(kind)
         body = self._fun_body(kind)

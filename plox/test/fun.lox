@@ -33,9 +33,17 @@ fun thrice(fn) {
   }
 }
 
+fun pr(a) {
+  print a;
+}
+
 thrice(fun (a) {
   print a;
 });
 
+thrice(pr);
 
 var greet = fun (name) { print "Hi, " + name;}("user");
+
+fun (a, b) { print a + b; }(4, 6);
+
