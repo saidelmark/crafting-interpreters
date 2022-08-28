@@ -4,6 +4,7 @@ from plox.errors import LoxErrors
 from plox.interpreter import Interpreter
 from plox.parser import Parser
 from plox.scanner import Scanner
+from plox.resolver import Resolver
 from plox.statements import Stmt
 
 
@@ -34,4 +35,6 @@ class Lox:
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
         statements: [Stmt] = parser.parse()
+        resolver = Resolver(self._interpreter)
+        resolver.resolve(statements)
         self._interpreter.interpret(statements)

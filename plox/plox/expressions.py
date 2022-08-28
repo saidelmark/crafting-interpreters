@@ -8,7 +8,7 @@ class Expr:
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Binary(Expr):
     left: Expr
     operator: Token
@@ -40,17 +40,17 @@ class Grouping(Expr):
     expression: Expr
 
 
-@dataclass
+@dataclass(frozen=True)
 class Literal(Expr):
     value: Any
 
 
-@dataclass
+@dataclass(frozen=True)
 class Variable(Expr):
     name: Token
 
 
-@dataclass
+@dataclass(frozen=True)
 class Assignment(Expr):
     name: Token
     value: Expr

@@ -14,6 +14,7 @@ from plox.token_types import Token, TokenType
 class Interpreter:
     def __init__(self):
         self.globals = Environment()
+        self._locals = {}
         self._env = self.globals
 
         self.globals.define('clock', Clock())
@@ -25,6 +26,9 @@ class Interpreter:
                     self._execute(statement)
         except LoxRuntimeError as e:
             LoxErrors.runtime_error(e)
+
+    def resolve(self, expr: Expr, depth: int):
+        self._locals[expr] = depth
 
     @singledispatchmethod
     def _execute(self, stmt: Stmt):
@@ -91,9 +95,13 @@ class Interpreter:
         raise NotImplementedError
 
     @_evaluate.register
-    def _(self, stmt: Assignment):
-        value = self._evaluate(stmt.value)
-        self._env.assign(stmt.name, value)
+    def _(self, expr: Assignment):
+        value = self._evaluate(expr.value)
+        distance = self._locals.get(expr)
+        if distance is not None:
+            return self._env.assign_at(distance, expr.name, value)
+        else:
+            return self.globals.assign(expr.name, value)
         return value
 
     @_evaluate.register
@@ -172,7 +180,7 @@ class Interpreter:
 
     @_evaluate.register
     def _(self, expr: Variable):
-        return self._env.get(expr.name)
+        return self._lookup_var(expr.name, expr)
 
     @_evaluate.register
     def _(self, expr: Grouping):
@@ -192,6 +200,13 @@ class Interpreter:
             if not self._is_truthy(left):
                 return left
         return self._evaluate(expr.right)
+
+    def _lookup_var(self, name: Token, expr: Expr):
+        distance = self._locals.get(expr)
+        if distance is not None:
+            return self._env.get_at(distance, name.lexeme)
+        else:
+            return self.globals.get(name)
 
     def _is_truthy(self, obj) -> bool:
         if obj is None:
