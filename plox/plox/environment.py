@@ -7,6 +7,12 @@ class Environment:
         self._values = dict()
         self.enclosing = enclosing
 
+    def __str__(self):
+        result = str(self._values)
+        if self.enclosing is not None:
+            result += f' -> {self.enclosing}'
+        return result
+
     def define(self, name: str, value):
         self._values[name] = value
 
