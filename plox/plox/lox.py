@@ -35,6 +35,10 @@ class Lox:
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
         statements: [Stmt] = parser.parse()
+        if LoxErrors.had_error:
+            return
         resolver = Resolver(self._interpreter)
         resolver.resolve(statements)
+        if LoxErrors.had_error:
+            return
         self._interpreter.interpret(statements)

@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from functools import singledispatchmethod
 
 from plox.errors import LoxErrors
@@ -7,7 +8,6 @@ from plox.interpreter import Interpreter
 from plox.statements import (Block, Expression, Function, If, Lambda, Print,
                              Return, Stmt, Var, While)
 from plox.token_types import Token
-from enum import Enum, auto
 
 
 class FunctionType(Enum):
@@ -82,6 +82,9 @@ class Resolver:
 
     @_resolve_stmt.register
     def _(self, stmt: Return):
+        if self._current_function == FunctionType.NONE:
+            LoxErrors.error(stmt.keyword.line,
+                            'Can\'t return from top-level context')
         if stmt.value is not None:
             self._resolve_expr(stmt.value)
         return None
