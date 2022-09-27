@@ -74,7 +74,7 @@ KEYWORD_TOKEN_TYPES = {
 }
 
 
-@dataclass
+@dataclass(frozen=True, eq=False)
 class Token:
     type: TokenType
     lexeme: str
