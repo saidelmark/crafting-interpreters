@@ -1,5 +1,6 @@
 import time
 from abc import abstractmethod
+from dataclasses import dataclass
 
 from plox.environment import Environment
 from plox.return_ex import LoxReturn
@@ -27,10 +28,11 @@ class Clock(LoxCallable):
         return '<native fn>'
 
 
+@dataclass
 class LoxFunction(LoxCallable):
-    def __init__(self, declaration: Function, closure: Environment):
-        self._declaration = declaration
-        self._closure = closure
+    _declaration: Function
+    _closure: Environment
+    _is_initializer: bool
 
     def call(self, interpreter, args):
         env = Environment(self._closure)
@@ -39,8 +41,17 @@ class LoxFunction(LoxCallable):
         try:
             interpreter.execute_block(self._declaration.body, env)
         except LoxReturn as ret:
+            if self._is_initializer:
+                return self._closure.get_at(0, 'this')
             return ret.value
+        if self._is_initializer:
+            return self._closure.get_at(0, "this")
         return None
+
+    def bind(self, instance):
+        env: Environment = Environment(self._closure)
+        env.define("this", instance)
+        return LoxFunction(self._declaration, env, self._is_initializer)
 
     def arity(self):
         return len(self._declaration.params)

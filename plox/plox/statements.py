@@ -56,6 +56,11 @@ class Function(Stmt):
 
 
 @dataclass
+class Class(Stmt):
+    name: Token
+    methods: [Function]
+
+@dataclass
 class Lambda(Expr):
     params: [Token]
     body: [Stmt]

@@ -23,10 +23,28 @@ class Call(Expr):
 
 
 @dataclass
+class Get(Expr):
+    object: Expr
+    name: Token
+
+
+@dataclass
 class Logical(Expr):
     left: Expr
     operator: Token
     right: Expr
+
+
+@dataclass
+class Set(Expr):
+    object: Expr
+    name: Token
+    value: Expr
+
+
+@dataclass(frozen=True)
+class This(Expr):
+    keyword: Token
 
 
 @dataclass
