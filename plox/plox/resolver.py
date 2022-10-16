@@ -3,7 +3,8 @@ from functools import singledispatchmethod
 
 from plox.errors import LoxErrors
 from plox.expressions import (Assignment, Binary, Call, Expr, Get, Grouping,
-                              Literal, Logical, Set, This, Unary, Variable)
+                              Literal, Logical, Set, Super, This, Unary,
+                              Variable)
 from plox.interpreter import Interpreter
 from plox.statements import (Block, Class, Expression, Function, If, Lambda,
                              Print, Return, Stmt, Var, While)
@@ -20,6 +21,7 @@ class FunctionType(Enum):
 class ClassType(Enum):
     NONE = auto()
     CLASS = auto()
+    SUBCLASS = auto()
 
 
 class Resolver:
@@ -50,14 +52,25 @@ class Resolver:
         self._current_class = ClassType.CLASS
         self._declare(stmt.name)
         self._define(stmt.name)
+        if stmt.superclass is not None:
+            if stmt.name.lexeme == stmt.superclass.name.lexeme:
+                LoxErrors.error(stmt.superclass.name.line,
+                                'A class cannot inherit from itself')
+            self._current_class = ClassType.SUBCLASS
+            self._resolve_expr(stmt.superclass)
+
+            self._begin_scope()
+            self._scopes[-1]['super'] = True
         self._begin_scope()
-        self._scopes[-1]["this"] = True
+        self._scopes[-1]['this'] = True
         for method in stmt.methods:
             declaration: FunctionType = FunctionType.METHOD
             if method.name.lexeme == 'init':
                 declaration = FunctionType.INITIALIZER
             self._resolve_function(method, declaration)
         self._end_scope()
+        if stmt.superclass is not None:
+            self._end_scope()
         self._current_class = enclosing_class
         return None
 
@@ -143,6 +156,17 @@ class Resolver:
     def _(self, expr: Set):
         self._resolve_expr(expr.value)
         self._resolve_expr(expr.object)
+        return None
+
+    @_resolve_expr.register
+    def _(self, expr: Super):
+        if self._current_class == ClassType.NONE:
+            LoxErrors.error(expr.keyword.line,
+                            'Can\'t use "super" outside of a class.')
+        elif self._current_class == ClassType.CLASS:
+            LoxErrors.error(expr.keyword.line,
+                            'Can\'t use "super" in a class with no superclass.')
+        self._resolve_local(expr, expr.keyword)
         return None
 
     @_resolve_expr.register

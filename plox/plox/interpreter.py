@@ -4,7 +4,8 @@ from plox.callable import Clock, LoxCallable, LoxFunction, LoxLambda
 from plox.environment import Environment
 from plox.errors import LoxErrors, LoxRuntimeError
 from plox.expressions import (Assignment, Binary, Call, Expr, Get, Grouping,
-                              Literal, Logical, Set, This, Unary, Variable)
+                              Literal, Logical, Set, Super, This, Unary,
+                              Variable)
 from plox.lox_class import LoxClass, LoxInstance
 from plox.return_ex import LoxReturn
 from plox.statements import (Block, Class, Expression, Function, If, Lambda,
@@ -84,13 +85,26 @@ class Interpreter:
 
     @_execute.register
     def _(self, stmt: Class):
+        superclass = None
+        if stmt.superclass is not None:
+            superclass = self._evaluate(stmt.superclass)
+            if not isinstance(superclass, LoxClass):
+                raise LoxRuntimeError(
+                    stmt.superclass.name, 'Superclass must be a class')
         self._env.define(stmt.name.lexeme, None)
+
+        if superclass is not None:
+            self._env = Environment(self._env)
+            self._env.define('super', superclass)
+
         methods = dict()
         for method in stmt.methods:
             function = LoxFunction(method, self._env,
                                    method.name.lexeme == 'init')
             methods[method.name.lexeme] = function
-        klass = LoxClass(stmt.name.lexeme, methods)
+        klass = LoxClass(stmt.name.lexeme, superclass, methods)
+        if superclass is not None:
+            self._env = self._env.enclosing
         self._env.assign(stmt.name, klass)
         return None
 
@@ -187,6 +201,17 @@ class Interpreter:
         if isinstance(obj, LoxInstance):
             return obj.get(expr.name)
         raise LoxRuntimeError(expr.name, 'Only instances have properties.')
+
+    @_evaluate.register
+    def _(self, expr: Super):
+        distance = self._locals.get(expr)
+        superclass: LoxClass = self._env.get_at(distance, 'super')
+        object: LoxInstance = self._env.get_at(distance - 1, 'this')
+        method: LoxFunction = superclass.find_method(expr.method.lexeme)
+        if method is None:
+            raise LoxRuntimeError(
+                expr.method, f'Undefined property {expr.method.lexeme}.')
+        return method.bind(object)
 
     @_evaluate.register
     def _(self, expr: Set):

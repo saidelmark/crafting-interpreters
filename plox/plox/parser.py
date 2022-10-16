@@ -1,6 +1,7 @@
 from plox.errors import LoxErrors, LoxParseError
 from plox.expressions import (Assignment, Binary, Call, Expr, Get, Grouping,
-                              Literal, Logical, Set, This, Unary, Variable)
+                              Literal, Logical, Set, Super, This, Unary,
+                              Variable)
 from plox.statements import (Block, Class, Expression, Function, If, Lambda,
                              Print, Return, Stmt, Var, While)
 from plox.token_types import Token, TokenType
@@ -32,13 +33,18 @@ class Parser:
 
     def _class_declaration(self) -> Class:
         name = self._consume(TokenType.IDENTIFIER, 'Expected class name')
+        superclass = None
+        if self._match(TokenType.LESS):
+            self._consume(TokenType.IDENTIFIER, 'Expect superclass name')
+            superclass = Variable(self._previous())
+
         self._consume(TokenType.LEFT_BRACE, 'Expect "{" before vlass body')
         methods: [Function] = []
         while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
             methods.append(self._fun_declaration('method'))
 
         self._consume(TokenType.RIGHT_BRACE, 'Expect "}" after class body')
-        return Class(name, methods)
+        return Class(name=name, superclass=superclass, methods=methods)
 
     def _fun_declaration(self, kind: str) -> Stmt:
         if self._check(TokenType.LEFT_PAREN):
@@ -309,6 +315,12 @@ class Parser:
             self._consume(TokenType.RIGHT_PAREN,
                           "Expected ')' after expression.")
             return Grouping(expr)
+        if self._match(TokenType.SUPER):
+            keyword: Token = self._previous()
+            self._consume(TokenType.DOT, 'Expect "." after "super".')
+            method = self._consume(TokenType.IDENTIFIER,
+                                   'Expect superclass method name.')
+            return Super(keyword, method)
         if self._match(TokenType.THIS):
             return This(self._previous())
         if self._match(TokenType.IDENTIFIER):

@@ -8,6 +8,7 @@ from plox.token_types import Token
 @dataclass
 class LoxClass(LoxCallable):
     name: str
+    superclass: 'LoxClass'
     _methods: dict()
 
     def __str__(self):
@@ -29,6 +30,8 @@ class LoxClass(LoxCallable):
     def find_method(self, name: str) -> LoxFunction:
         if name in self._methods.keys():
             return self._methods[name]
+        if self.superclass is not None:
+            return self.superclass.find_method(name)
         return None
 
 
