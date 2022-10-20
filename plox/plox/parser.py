@@ -1,8 +1,9 @@
 from plox.errors import LoxErrors, LoxParseError
-from plox.expressions import (Assignment, Binary, Call, Expr, Grouping,
-                              Literal, Logical, Unary, Variable)
-from plox.statements import (Block, Expression, Function, If, Lambda, Print,
-                             Return, Stmt, Var, While)
+from plox.expressions import (Assignment, Binary, Call, Expr, Get, Grouping,
+                              Literal, Logical, Set, Super, This, Unary,
+                              Variable)
+from plox.statements import (Block, Class, Expression, Function, If, Lambda,
+                             Print, Return, Stmt, Var, While)
 from plox.token_types import Token, TokenType
 
 
@@ -19,7 +20,9 @@ class Parser:
 
     def _declaration(self) -> Stmt:
         try:
-            if self._match(TokenType.FUN):
+            if self._match(TokenType.CLASS):
+                return self._class_declaration()
+            elif self._match(TokenType.FUN):
                 return self._fun_declaration('function')
             elif self._match(TokenType.VAR):
                 return self._var_declaration()
@@ -27,6 +30,21 @@ class Parser:
         except LoxParseError:
             self._synchronize()
             return None
+
+    def _class_declaration(self) -> Class:
+        name = self._consume(TokenType.IDENTIFIER, 'Expected class name')
+        superclass = None
+        if self._match(TokenType.LESS):
+            self._consume(TokenType.IDENTIFIER, 'Expect superclass name')
+            superclass = Variable(self._previous())
+
+        self._consume(TokenType.LEFT_BRACE, 'Expect "{" before vlass body')
+        methods: [Function] = []
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            methods.append(self._fun_declaration('method'))
+
+        self._consume(TokenType.RIGHT_BRACE, 'Expect "}" after class body')
+        return Class(name=name, superclass=superclass, methods=methods)
 
     def _fun_declaration(self, kind: str) -> Stmt:
         if self._check(TokenType.LEFT_PAREN):
@@ -180,6 +198,9 @@ class Parser:
             if isinstance(expr, Variable):
                 name: Token = expr.name
                 return Assignment(name, value)
+            elif isinstance(expr, Get):
+                get: Get = expr
+                return Set(get.object, get.name, value)
             self._error(equals, "Invalid assignment target")
         return expr
 
@@ -253,6 +274,9 @@ class Parser:
         while True:
             if self._match(TokenType.LEFT_PAREN):
                 expr = self._finish_call(expr)
+            elif self._match(TokenType.DOT):
+                name = self._consume(TokenType.IDENTIFIER, '')
+                expr = Get(expr, name)
             else:
                 break
 
@@ -291,6 +315,14 @@ class Parser:
             self._consume(TokenType.RIGHT_PAREN,
                           "Expected ')' after expression.")
             return Grouping(expr)
+        if self._match(TokenType.SUPER):
+            keyword: Token = self._previous()
+            self._consume(TokenType.DOT, 'Expect "." after "super".')
+            method = self._consume(TokenType.IDENTIFIER,
+                                   'Expect superclass method name.')
+            return Super(keyword, method)
+        if self._match(TokenType.THIS):
+            return This(self._previous())
         if self._match(TokenType.IDENTIFIER):
             return Variable(self._previous())
         raise self._error(self._peek(), "Expected expression")

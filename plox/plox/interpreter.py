@@ -3,11 +3,13 @@ from functools import singledispatchmethod
 from plox.callable import Clock, LoxCallable, LoxFunction, LoxLambda
 from plox.environment import Environment
 from plox.errors import LoxErrors, LoxRuntimeError
-from plox.expressions import (Assignment, Binary, Call, Expr, Grouping,
-                              Literal, Logical, Unary, Variable)
+from plox.expressions import (Assignment, Binary, Call, Expr, Get, Grouping,
+                              Literal, Logical, Set, Super, This, Unary,
+                              Variable)
+from plox.lox_class import LoxClass, LoxInstance
 from plox.return_ex import LoxReturn
-from plox.statements import (Block, Expression, Function, If, Lambda, Print,
-                             Return, Stmt, Var, While)
+from plox.statements import (Block, Class, Expression, Function, If, Lambda,
+                             Print, Return, Stmt, Var, While)
 from plox.token_types import Token, TokenType
 
 
@@ -49,7 +51,7 @@ class Interpreter:
 
     @_execute.register
     def _(self, stmt: Function):
-        function = LoxFunction(stmt, self._env)
+        function = LoxFunction(stmt, self._env, False)
         self._env.define(stmt.name.lexeme, function)
         return None
 
@@ -80,6 +82,31 @@ class Interpreter:
     @_execute.register
     def _(self, stmt: Block):
         self.execute_block(stmt.statements, Environment(self._env))
+
+    @_execute.register
+    def _(self, stmt: Class):
+        superclass = None
+        if stmt.superclass is not None:
+            superclass = self._evaluate(stmt.superclass)
+            if not isinstance(superclass, LoxClass):
+                raise LoxRuntimeError(
+                    stmt.superclass.name, 'Superclass must be a class')
+        self._env.define(stmt.name.lexeme, None)
+
+        if superclass is not None:
+            self._env = Environment(self._env)
+            self._env.define('super', superclass)
+
+        methods = dict()
+        for method in stmt.methods:
+            function = LoxFunction(method, self._env,
+                                   method.name.lexeme == 'init')
+            methods[method.name.lexeme] = function
+        klass = LoxClass(stmt.name.lexeme, superclass, methods)
+        if superclass is not None:
+            self._env = self._env.enclosing
+        self._env.assign(stmt.name, klass)
+        return None
 
     def execute_block(self, statements: [Stmt], env: Environment):
         prev_env = self._env
@@ -167,6 +194,37 @@ class Interpreter:
                 expr.paren,
                 f'Expected {function.arity()} arguments, but got {len(args)}.')
         return function.call(self, args)
+
+    @_evaluate.register
+    def _(self, expr: Get):
+        obj = self._evaluate(expr.object)
+        if isinstance(obj, LoxInstance):
+            return obj.get(expr.name)
+        raise LoxRuntimeError(expr.name, 'Only instances have properties.')
+
+    @_evaluate.register
+    def _(self, expr: Super):
+        distance = self._locals.get(expr)
+        superclass: LoxClass = self._env.get_at(distance, 'super')
+        object: LoxInstance = self._env.get_at(distance - 1, 'this')
+        method: LoxFunction = superclass.find_method(expr.method.lexeme)
+        if method is None:
+            raise LoxRuntimeError(
+                expr.method, f'Undefined property {expr.method.lexeme}.')
+        return method.bind(object)
+
+    @_evaluate.register
+    def _(self, expr: Set):
+        object = self._evaluate(expr.object)
+        if not isinstance(object, LoxInstance):
+            raise LoxRuntimeError(expr.name, 'Only instances have fields')
+        value = self._evaluate(expr.value)
+        object.set(expr.name, value)
+        return value
+
+    @_evaluate.register
+    def _(self, expr: This):
+        return self._lookup_var(expr.keyword, expr)
 
     @_evaluate.register
     def _(self, expr: Unary):
