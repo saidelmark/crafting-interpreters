@@ -16,12 +16,12 @@ typedef struct {
 typedef enum {
   INTERPRET_OK,
   INTERPRET_COMPILE_ERROR,
-  INTERPRET_RUNTEMI_ERROR,
+  INTERPRET_RUNTIME_ERROR,
 } InterpretResults;
 
 void initVM();
 void freeVM();
-InterpretResults interpret(Chunk* chunk);
+InterpretResults interpret(const char* source);
 
 void push(Value value);
 Value pop();
