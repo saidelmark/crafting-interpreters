@@ -4,9 +4,9 @@
 #include "common.h"
 
 typedef enum {
-  VAL_BOOL,
-  VAL_NIL,
-  VAL_NUMBER,
+	VAL_BOOL,
+	VAL_NIL,
+	VAL_NUMBER,
 } ValueType;
 
 typedef struct {
