@@ -202,6 +202,7 @@ static InterpretResults run() {
 				vm.ip -= offset;
 				break;
 			}
+			case OP_DUP: push(peek(0)); break;
 			case OP_RETURN:
 				// Do nothing for now, just exit interpreter
 				return INTERPRET_OK;

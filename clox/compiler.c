@@ -36,6 +36,12 @@ typedef enum {
 	PREC_PRIMARY
 } Precedence;
 
+typedef enum {
+	SWITCH_START,
+	SWITCH_CASE,
+	SWITCH_DEFAULT,
+} SwitchState;
+
 typedef void (*ParseFn)(bool canAssign);
 
 typedef struct {
@@ -390,6 +396,66 @@ static void ifStatement() {
 	patchJump(elseJump);
 }
 
+static void switchStatement() {
+#define MAX_CASES 256
+	consume(TOKEN_LEFT_PAREN, "Expect '(' after 'switch'.");
+	expression();
+	consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition");
+	consume(TOKEN_LEFT_BRACE, "Expect '{' before switch cases.");
+
+	SwitchState state = SWITCH_START;
+	int caseEnds[MAX_CASES];
+	int caseCount = 0;
+	int prevCaseSkip = -1;
+
+	while (!match(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+		if (match(TOKEN_CASE) || match(TOKEN_DEFAULT)) {
+			TokenType caseType = parser.previous.type;
+
+			if (state == SWITCH_DEFAULT) {
+				error("'Default' can only be the last case in a 'switch'.");
+			}
+
+			if (state == SWITCH_CASE) {
+				caseEnds[caseCount++] = emitJump(OP_JUMP);
+				patchJump(prevCaseSkip);
+				emitByte(OP_POP);
+			}
+
+			if (caseType == TOKEN_CASE) {
+				state = SWITCH_CASE;
+				emitByte(OP_DUP);
+				expression();
+				consume(TOKEN_COLON, "Expect ':' after 'case'.");
+				emitByte(OP_EQUAL);
+				prevCaseSkip = emitJump(OP_JUMP_IF_FALSE);
+				emitByte(OP_POP);
+			} else {
+				state = SWITCH_DEFAULT;
+				consume(TOKEN_COLON, "Expect ':' after 'default'.");
+				prevCaseSkip = -1;
+			}
+		} else {
+			if (state == SWITCH_START) {
+				error("There has to be a case before any statements inside a 'switch'.");
+			}
+			statement();
+		}
+	}
+
+	if (state == SWITCH_CASE) {
+		patchJump(prevCaseSkip);
+		emitByte(OP_POP);
+	}
+
+	for (int i = 0; i < caseCount; i++) {
+		patchJump(caseEnds[i]);
+	}
+
+	emitByte(OP_POP);
+#undef MAX_CASES
+}
+
 static void printStatement() {
 	expression();
 	consume(TOKEN_SEMICOLON, "Expect ';' after value.");
@@ -465,6 +531,8 @@ static void statement() {
 		ifStatement();
 	} else if (match(TOKEN_WHILE)) {
 		whileStatement();
+	} else if (match(TOKEN_SWITCH)) {
+		switchStatement();
 	} else if (match(TOKEN_LEFT_BRACE)) {
 		beginScope();
 		block();
@@ -566,6 +634,10 @@ ParseRule rules[] = {
   [TOKEN_FOR]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_FUN]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_SWITCH]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_CASE]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_DEFAULT]       = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_COLON]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_NIL]           = {literal,  NULL,   PREC_NONE},
   [TOKEN_OR]            = {NULL,     or_,    PREC_OR},
   [TOKEN_PRINT]         = {NULL,     NULL,   PREC_NONE},
