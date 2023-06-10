@@ -28,6 +28,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_JUMP_IF_FALSE: return "OP_JUMP_IF_FALSE";
 		case OP_LOOP: return "OP_LOOP";
 		case OP_DUP: return "OP_DUP";
+		case OP_CALL: return "OP_CALL";
 		case OP_RETURN: return "OP_RETURN";
 	}
 }
@@ -130,6 +131,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return simpleInstruction(instruction, offset);
 		case OP_RETURN:
 			return simpleInstruction(instruction, offset);
+		case OP_CALL:
+			return byteInstruction(instruction, chunk, offset);
 		default:
 			printf("Unknown opcode %d\n", instruction);
 			return offset + 1;
