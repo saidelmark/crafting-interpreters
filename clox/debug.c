@@ -29,6 +29,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_LOOP: return "OP_LOOP";
 		case OP_DUP: return "OP_DUP";
 		case OP_CALL: return "OP_CALL";
+		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_RETURN: return "OP_RETURN";
 	}
 }
@@ -129,10 +130,18 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return jumpInstruction(instruction, -1, chunk, offset);
 		case OP_DUP:
 			return simpleInstruction(instruction, offset);
-		case OP_RETURN:
-			return simpleInstruction(instruction, offset);
 		case OP_CALL:
 			return byteInstruction(instruction, chunk, offset);
+		case OP_CLOSURE: {
+			offset++;
+			uint8_t constant = chunk->code[offset++];
+			printf("%-16s %4d ", instructionToStr(instruction), constant);
+			printValue(chunk->constants.values[constant]);
+			printf("\n");
+			return offset;
+		}
+		case OP_RETURN:
+			return simpleInstruction(instruction, offset);
 		default:
 			printf("Unknown opcode %d\n", instruction);
 			return offset + 1;
