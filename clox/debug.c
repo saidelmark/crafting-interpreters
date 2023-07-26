@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "debug.h"
+#include "object.h"
 #include "value.h"
 
 static char* instructionToStr(OpCode code) {
@@ -16,6 +17,8 @@ static char* instructionToStr(OpCode code) {
 		case OP_GET_GLOBAL: return "OP_GET_GLOBAL";
 		case OP_DEFINE_GLOBAL: return "OP_DEFINE_GLOBAL";
 		case OP_SET_GLOBAL: return "OP_SET_GLOBAL";
+		case OP_GET_UPVALUE: return "OP_GET_UPVALUE";
+		case OP_SET_UPVALUE: return "OP_SET_UPVALUE";
 		case OP_EQUAL: return "OP_EQUAL";
 		case OP_GREATER: return "OP_GREATER";
 		case OP_LESS: return "OP_LESS";
@@ -29,6 +32,8 @@ static char* instructionToStr(OpCode code) {
 		case OP_LOOP: return "OP_LOOP";
 		case OP_DUP: return "OP_DUP";
 		case OP_CALL: return "OP_CALL";
+		case OP_CLOSURE: return "OP_CLOSURE";
+		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
 		case OP_RETURN: return "OP_RETURN";
 	}
 }
@@ -101,6 +106,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return constantInstruction(instruction, chunk, offset);
 		case OP_SET_GLOBAL:
 			return constantInstruction(instruction, chunk, offset);
+		case OP_GET_UPVALUE:
+			return byteInstruction(instruction, chunk, offset);
+		case OP_SET_UPVALUE:
+			return byteInstruction(instruction, chunk, offset);
 		case OP_EQUAL:
 			return simpleInstruction(instruction, offset);
 		case OP_GREATER:
@@ -129,10 +138,29 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return jumpInstruction(instruction, -1, chunk, offset);
 		case OP_DUP:
 			return simpleInstruction(instruction, offset);
-		case OP_RETURN:
-			return simpleInstruction(instruction, offset);
 		case OP_CALL:
 			return byteInstruction(instruction, chunk, offset);
+		case OP_CLOSURE: {
+			offset++;
+			uint8_t constant = chunk->code[offset++];
+			printf("%-16s %4d ", instructionToStr(instruction), constant);
+			printValue(chunk->constants.values[constant]);
+			printf("\n");
+
+			ObjFunction* function = AS_FUNCTION(chunk->constants.values[constant]);
+			for (int j = 0; j < function->upvalueCount; j++) {
+				int isLocal = chunk->code[offset++];
+				int index = chunk->code[offset++];
+				printf("%04d      |                     %s %d\n",
+						offset - 2, isLocal ? "local" : "upvalue", index);
+			}
+
+			return offset;
+		}
+		case OP_CLOSE_UPVALUE:
+			return simpleInstruction(instruction, offset);
+		case OP_RETURN:
+			return simpleInstruction(instruction, offset);
 		default:
 			printf("Unknown opcode %d\n", instruction);
 			return offset + 1;
