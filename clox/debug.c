@@ -34,6 +34,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_CALL: return "OP_CALL";
 		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
+		case OP_CLASS: return "OP_CLASS";
 		case OP_RETURN: return "OP_RETURN";
 	}
 }
@@ -159,6 +160,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 		}
 		case OP_CLOSE_UPVALUE:
 			return simpleInstruction(instruction, offset);
+		case OP_CLASS:
+			return constantInstruction(instruction, chunk, offset);
 		case OP_RETURN:
 			return simpleInstruction(instruction, offset);
 		default:
