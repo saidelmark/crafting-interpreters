@@ -19,6 +19,8 @@ static char* instructionToStr(OpCode code) {
 		case OP_SET_GLOBAL: return "OP_SET_GLOBAL";
 		case OP_GET_UPVALUE: return "OP_GET_UPVALUE";
 		case OP_SET_UPVALUE: return "OP_SET_UPVALUE";
+		case OP_GET_PROPERTY: return "OP_GET_PROPERTY";
+		case OP_SET_PROPERTY: return "OP_SET_PROPERTY";
 		case OP_EQUAL: return "OP_EQUAL";
 		case OP_GREATER: return "OP_GREATER";
 		case OP_LESS: return "OP_LESS";
@@ -34,6 +36,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_CALL: return "OP_CALL";
 		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
+		case OP_CLASS: return "OP_CLASS";
 		case OP_RETURN: return "OP_RETURN";
 	}
 }
@@ -110,6 +113,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return byteInstruction(instruction, chunk, offset);
 		case OP_SET_UPVALUE:
 			return byteInstruction(instruction, chunk, offset);
+		case OP_GET_PROPERTY:
+			return constantInstruction(instruction, chunk, offset);
+		case OP_SET_PROPERTY:
+			return constantInstruction(instruction, chunk, offset);
 		case OP_EQUAL:
 			return simpleInstruction(instruction, offset);
 		case OP_GREATER:
@@ -159,6 +166,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 		}
 		case OP_CLOSE_UPVALUE:
 			return simpleInstruction(instruction, offset);
+		case OP_CLASS:
+			return constantInstruction(instruction, chunk, offset);
 		case OP_RETURN:
 			return simpleInstruction(instruction, offset);
 		default:
