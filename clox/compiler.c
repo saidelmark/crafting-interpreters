@@ -101,7 +101,7 @@ static void errorAt(Token* token, const char* message) {
 	} else if (token->type == TOKEN_ERROR) {
 		// Don't do anything
 	} else {
-		fprintf(stderr, " at '%.*s'", token->lentgh, token->start);
+		fprintf(stderr, " at '%.*s'", token->length, token->start);
 	}
 
 	fprintf(stderr, ": %s\n", message);
@@ -209,7 +209,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 	compiler->function = newFunction();
 	current = compiler;
 	if (type != TYPE_SCRIPT) {
-		current->function->name = copyString(parser.previous.start, parser.previous.lentgh);
+		current->function->name = copyString(parser.previous.start, parser.previous.length);
 	}
 
 	Local* local = &current->locals[current->localCount++];
@@ -217,10 +217,10 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 	local->isCaptured = false;
 	if (type != TYPE_FUNCTION) {
 		local->name.start = "this";
-		local->name.lentgh = 4;
+		local->name.length = 4;
 	} else {
 		local->name.start = "";
-		local->name.lentgh = 0;
+		local->name.length = 0;
 	}
 }
 
@@ -264,12 +264,12 @@ static void parsePrecedence(Precedence precedence);
 static void namedVariable(Token name, bool canAssign);
 
 static uint8_t identifierConstant(Token* name) {
-	return makeConstant(OBJ_VAL(copyString(name->start, name->lentgh)));
+	return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
 static bool identifierEqual(Token* a, Token* b) {
-	if (a->lentgh != b->lentgh) return false;
-	return memcmp(a->start, b->start, a->lentgh) == 0;
+	if (a->length != b->length) return false;
+	return memcmp(a->start, b->start, a->length) == 0;
 }
 
 static int resolveLocal(Compiler* compiler, Token* name) {
@@ -774,7 +774,7 @@ static void or_(bool canAssign) {
 
 static void string(bool canAssign) {
 	emitConstant(OBJ_VAL(copyString(parser.previous.start + 1,
-	                                parser.previous.lentgh - 2)));
+	                                parser.previous.length - 2)));
 }
 
 static void namedVariable(Token name, bool canAssign) {
