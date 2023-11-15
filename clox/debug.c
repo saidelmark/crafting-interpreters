@@ -21,6 +21,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_SET_UPVALUE: return "OP_SET_UPVALUE";
 		case OP_GET_PROPERTY: return "OP_GET_PROPERTY";
 		case OP_SET_PROPERTY: return "OP_SET_PROPERTY";
+		case OP_GET_SUPER: return  "OP_GET_SUPER";
 		case OP_EQUAL: return "OP_EQUAL";
 		case OP_GREATER: return "OP_GREATER";
 		case OP_LESS: return "OP_LESS";
@@ -129,6 +130,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 		case OP_GET_PROPERTY:
 			return constantInstruction(instruction, chunk, offset);
 		case OP_SET_PROPERTY:
+			return constantInstruction(instruction, chunk, offset);
+		case OP_GET_SUPER:
 			return constantInstruction(instruction, chunk, offset);
 		case OP_EQUAL:
 			return simpleInstruction(instruction, offset);
