@@ -36,6 +36,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_DUP: return "OP_DUP";
 		case OP_CALL: return "OP_CALL";
 		case OP_INVOKE: return "OP_INVOKE";
+		case OP_SUPER_INVOKE: return "OP_SUPER_INVOKE";
 		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
 		case OP_CLASS: return "OP_CLASS";
@@ -164,6 +165,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 		case OP_CALL:
 			return byteInstruction(instruction, chunk, offset);
 		case OP_INVOKE:
+			return invokeInstruction(instruction, chunk, offset);
+		case OP_SUPER_INVOKE:
 			return invokeInstruction(instruction, chunk, offset);
 		case OP_CLOSURE: {
 			offset++;
