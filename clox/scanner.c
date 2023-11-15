@@ -57,7 +57,7 @@ static Token makeToken(TokenType type) {
 	Token token;
 	token.type = type;
 	token.start = scanner.start;
-	token.lentgh = (int) (scanner.current - scanner.start);
+	token.length = (int) (scanner.current - scanner.start);
 	token.line = scanner.line;
 	return token;
 }
@@ -66,7 +66,7 @@ static Token errorToken(const char* message) {
 	Token token;
 	token.type = TOKEN_ERROR;
 	token.start = message;
-	token.lentgh = (int) strlen(message);
+	token.length = (int) strlen(message);
 	token.line = scanner.line;
 	return token;
 }
@@ -106,9 +106,9 @@ static void skipWhitespace() {
 	}
 }
 
-static TokenType checkKeyword(int start, int lentgh, const char* rest, TokenType type) {
-	if (scanner.current - scanner.start == start + lentgh &&
-		memcmp(scanner.start + start, rest, lentgh) == 0) {
+static TokenType checkKeyword(int start, int length, const char* rest, TokenType type) {
+	if (scanner.current - scanner.start == start + length &&
+		memcmp(scanner.start + start, rest, length) == 0) {
 		return type;
 	}
 	return TOKEN_IDENTIFIER;

@@ -34,9 +34,11 @@ static char* instructionToStr(OpCode code) {
 		case OP_LOOP: return "OP_LOOP";
 		case OP_DUP: return "OP_DUP";
 		case OP_CALL: return "OP_CALL";
+		case OP_INVOKE: return "OP_INVOKE";
 		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
 		case OP_CLASS: return "OP_CLASS";
+		case OP_METHOD: return "OP_METHOD";
 		case OP_RETURN: return "OP_RETURN";
 	}
 }
@@ -77,6 +79,16 @@ static int constantInstruction(OpCode code, Chunk* chunk, int offset) {
 	printValue(chunk->constants.values[constant]);
 	printf("'\n");
 	return offset + 2;
+}
+
+static int invokeInstruction(OpCode code, Chunk* chunk, int offset) {
+	char* name = instructionToStr(code);
+	uint8_t constant = chunk->code[offset + 1];
+	uint8_t argCount = chunk->code[offset + 2];
+	printf("%-16s (%d args) %4d '", name, argCount, constant);
+	printValue(chunk->constants.values[constant]);
+	printf("'\n");
+	return offset + 3;
 }
 
 int disassembleInstruction(Chunk* chunk, int offset) {
@@ -147,6 +159,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return simpleInstruction(instruction, offset);
 		case OP_CALL:
 			return byteInstruction(instruction, chunk, offset);
+		case OP_INVOKE:
+			return invokeInstruction(instruction, chunk, offset);
 		case OP_CLOSURE: {
 			offset++;
 			uint8_t constant = chunk->code[offset++];
@@ -167,6 +181,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 		case OP_CLOSE_UPVALUE:
 			return simpleInstruction(instruction, offset);
 		case OP_CLASS:
+			return constantInstruction(instruction, chunk, offset);
+		case OP_METHOD:
 			return constantInstruction(instruction, chunk, offset);
 		case OP_RETURN:
 			return simpleInstruction(instruction, offset);
