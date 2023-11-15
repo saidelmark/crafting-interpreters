@@ -21,6 +21,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_SET_UPVALUE: return "OP_SET_UPVALUE";
 		case OP_GET_PROPERTY: return "OP_GET_PROPERTY";
 		case OP_SET_PROPERTY: return "OP_SET_PROPERTY";
+		case OP_GET_SUPER: return  "OP_GET_SUPER";
 		case OP_EQUAL: return "OP_EQUAL";
 		case OP_GREATER: return "OP_GREATER";
 		case OP_LESS: return "OP_LESS";
@@ -35,9 +36,11 @@ static char* instructionToStr(OpCode code) {
 		case OP_DUP: return "OP_DUP";
 		case OP_CALL: return "OP_CALL";
 		case OP_INVOKE: return "OP_INVOKE";
+		case OP_SUPER_INVOKE: return "OP_SUPER_INVOKE";
 		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
 		case OP_CLASS: return "OP_CLASS";
+		case OP_INHERIT: return "OP_INHERIT";
 		case OP_METHOD: return "OP_METHOD";
 		case OP_RETURN: return "OP_RETURN";
 	}
@@ -129,6 +132,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return constantInstruction(instruction, chunk, offset);
 		case OP_SET_PROPERTY:
 			return constantInstruction(instruction, chunk, offset);
+		case OP_GET_SUPER:
+			return constantInstruction(instruction, chunk, offset);
 		case OP_EQUAL:
 			return simpleInstruction(instruction, offset);
 		case OP_GREATER:
@@ -161,6 +166,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return byteInstruction(instruction, chunk, offset);
 		case OP_INVOKE:
 			return invokeInstruction(instruction, chunk, offset);
+		case OP_SUPER_INVOKE:
+			return invokeInstruction(instruction, chunk, offset);
 		case OP_CLOSURE: {
 			offset++;
 			uint8_t constant = chunk->code[offset++];
@@ -182,6 +189,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return simpleInstruction(instruction, offset);
 		case OP_CLASS:
 			return constantInstruction(instruction, chunk, offset);
+		case OP_INHERIT:
+			return simpleInstruction(instruction, offset);
 		case OP_METHOD:
 			return constantInstruction(instruction, chunk, offset);
 		case OP_RETURN:
