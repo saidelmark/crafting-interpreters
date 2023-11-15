@@ -38,6 +38,7 @@ static char* instructionToStr(OpCode code) {
 		case OP_CLOSURE: return "OP_CLOSURE";
 		case OP_CLOSE_UPVALUE: return "OP_CLOSE_UPVALUE";
 		case OP_CLASS: return "OP_CLASS";
+		case OP_INHERIT: return "OP_INHERIT";
 		case OP_METHOD: return "OP_METHOD";
 		case OP_RETURN: return "OP_RETURN";
 	}
@@ -182,6 +183,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return simpleInstruction(instruction, offset);
 		case OP_CLASS:
 			return constantInstruction(instruction, chunk, offset);
+		case OP_INHERIT:
+			return simpleInstruction(instruction, offset);
 		case OP_METHOD:
 			return constantInstruction(instruction, chunk, offset);
 		case OP_RETURN:
